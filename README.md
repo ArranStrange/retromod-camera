@@ -30,11 +30,12 @@ an original/sim split view, `Q` quit. Set `INPUT_SOURCE = "folder"` in
 
 ### Tuning studio
 
-Press `E` to edit the current sim live: `[` / `]` select a parameter, `-` / `=`
-adjust it, `S` write it back to the profile's JSON file, `E` again to exit
-(unsaved tweaks are discarded). `warmth` (red-blue) and `tint` (green-magenta)
-are one-value colour shifts baked into the colour matrix, so most looks can be
-tuned without touching the matrix by hand.
+Press `E` to edit the current sim live: `P` cycles parameter pages (Tone,
+Colour, Grade, HSL Hue/Sat/Lum, Effects), `[` / `]` select a parameter,
+`-` / `=` adjust it, `S` write it back to the profile's JSON file, `E` again
+to exit (unsaved tweaks are discarded). `warmth` (red-blue) and `tint`
+(green-magenta) are one-value colour shifts baked into the colour matrix, so
+most looks can be tuned without touching the matrix by hand.
 
 ## Film profiles
 
@@ -43,16 +44,27 @@ and `order` sets the swipe sequence. Both the Mac app and (later) the Pi load
 the same files, so tuning a look on the Mac and copying the file to the camera
 is the whole deployment story.
 
+Processing runs entirely in float32 (0-1), quantising to 8-bit only at the
+output, in this order: colour matrix → tone panel → curves → contrast →
+HSL mixer → mono/saturation → colour grade → vignette → grain.
+
 | Field | Meaning |
 |---|---|
 | `name`, `subtitle` | Shown on the rear display |
 | `box_color` | RGB colour of the film-box UI |
 | `color_matrix` | 3x3 RGB transform |
-| `tone_curve` | `[x, y]` control points (0-1), smoothly interpolated; omit for linear |
+| `warmth`, `tint` | Red-blue / green-magenta shifts baked into the matrix |
+| `exposure` | Stops, -2..+2 |
+| `highlights`, `shadows`, `whites`, `blacks` | Lightroom-style tone panel, -1..+1 |
+| `tone_curve` | Luminance curve as `[x, y]` control points (0-1), smoothly interpolated |
+| `curve_red`, `curve_green`, `curve_blue` | Optional per-channel curves, same format |
 | `contrast`, `saturation`, `brightness` | Global adjustments |
 | `shadow_lift` | Lifts crushed blacks |
-| `monochrome` | Black & white sim |
-| `grain_strength` | 0 = none, ~0.3 = heavy |
+| `hsl` | 8-band mixer: `{"red": {"hue": deg, "sat": -1..1, "lum": -1..1}, ...}` (red, orange, yellow, green, aqua, blue, purple, magenta) |
+| `grade` | Split toning: `{"shadows"/"midtones"/"highlights": {"hue": deg, "sat": 0..1}, "balance": -1..1}` |
+| `monochrome` | Black & white sim (grade still applies — use it for sepia/selenium toning) |
+| `grain_strength`, `grain_size` | 0 = none, ~0.3 = heavy; size 1 = fine, larger = coarser |
+| `vignette`, `vignette_mid` | -1 dark corners .. +1 bright; midpoint of falloff |
 
 ## Tests
 

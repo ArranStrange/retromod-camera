@@ -70,7 +70,7 @@ def run(source: str | None = None) -> None:
     print(f"  1-{len(keys)}       — switch film profile")
     print("  , / .     — cycle profiles")
     print("  B         — toggle original/sim split view")
-    print("  E         — edit current profile ([ ] select, - = adjust, S save)")
+    print("  E         — edit current profile (P page, [ ] select, - = adjust, S save)")
     print("  Q or ESC  — quit")
     print()
 
@@ -120,6 +120,8 @@ def run(source: str | None = None) -> None:
                     simulator.set_profile(profile)
                     editor = None
             elif editor is not None:
+                if key == ord("p"):
+                    editor.select_page(+1)
                 if key == ord("["):
                     editor.select(-1)
                 if key == ord("]"):
