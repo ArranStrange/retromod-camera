@@ -135,3 +135,20 @@ def test_grade_balance_shifts_zones():
     pushed = ops.color_grade(mid, {**grade, "balance": 1.0})
     # positive balance treats midtones more like highlights -> stronger tint
     assert abs(pushed - mid).sum() > abs(neutral - mid).sum()
+
+
+def test_vignette_zero_is_noop(rgb):
+    assert ops.vignette(rgb, 0.0) is rgb
+
+
+def test_vignette_darkens_corners_not_centre():
+    flat = np.full((100, 100, 3), 0.6, dtype=np.float32)
+    out = ops.vignette(flat, -0.8, midpoint=0.3)
+    assert out[0, 0].mean() < 0.5
+    assert out[50, 50].mean() == pytest.approx(0.6, abs=1e-3)
+
+
+def test_vignette_positive_brightens_corners():
+    flat = np.full((100, 100, 3), 0.4, dtype=np.float32)
+    out = ops.vignette(flat, 0.8, midpoint=0.3)
+    assert out[0, 0].mean() > 0.5

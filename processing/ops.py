@@ -201,3 +201,22 @@ def adjust_saturation(rgb: np.ndarray, saturation: float) -> np.ndarray:
 
 def to_monochrome(rgb: np.ndarray) -> np.ndarray:
     return np.repeat(luma(rgb)[..., None], 3, axis=2)
+
+
+def vignette(rgb: np.ndarray, amount: float, midpoint: float = 0.5) -> np.ndarray:
+    """Radial exposure falloff. amount: -1 (dark corners) .. +1 (bright).
+
+    midpoint: 0..1, how far from centre the falloff starts.
+    """
+    if not amount:
+        return rgb
+
+    h, w = rgb.shape[:2]
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    nx = (xx / (w - 1)) * 2.0 - 1.0
+    ny = (yy / (h - 1)) * 2.0 - 1.0
+    dist = np.sqrt(nx * nx + ny * ny) / np.sqrt(2.0)
+
+    t = np.clip((dist - midpoint) / max(1.0 - midpoint, 1e-4), 0.0, 1.0)
+    t = t * t * (3.0 - 2.0 * t)  # smoothstep
+    return np.clip(rgb * (1.0 + amount * t)[..., None], 0.0, 1.0)

@@ -63,5 +63,8 @@ class FilmSimulator:
         if profile.grade:
             rgb = ops.color_grade(rgb, profile.grade)
 
-        rgb = add_grain(rgb, profile.grain_strength, seed=grain_seed)
+        if profile.vignette:
+            rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)
+
+        rgb = add_grain(rgb, profile.grain_strength, size=profile.grain_size, seed=grain_seed)
         return ops.to_bgr_u8(rgb)
