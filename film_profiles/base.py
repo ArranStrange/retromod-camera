@@ -9,16 +9,18 @@ import numpy as np
 
 @dataclass(frozen=True)
 class FilmProfile:
-    """Describes one film stock emulation recipe."""
+    """Describes one film simulation recipe."""
 
     key: str
     name: str
     box_color: tuple[int, int, int]  # RGB for rear-display film box mock
     color_matrix: np.ndarray  # 3x3 RGB transform
+    subtitle: str = ""  # short descriptor shown under the sim name
+    order: int = 0  # position in the swipe/cycle sequence
     contrast: float = 1.0
     saturation: float = 1.0
     brightness: float = 0.0  # additive offset in 0-1 space after normalize
-    shadow_lift: float = 0.0  # lift crushed blacks (Cinestill-style)
+    shadow_lift: float = 0.0  # lift crushed blacks
     monochrome: bool = False
     grain_strength: float = 0.0  # 0 = off
     tone_curve: np.ndarray | None = None  # 256-entry LUT, or None for linear

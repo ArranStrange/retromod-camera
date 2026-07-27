@@ -15,5 +15,6 @@ SAVE_RAW = True
 PREVIEW_WIDTH = 640
 PREVIEW_HEIGHT = 480
 
-# Default film profile key (see film_profiles/registry.py)
-DEFAULT_PROFILE = "kodachrome64"
+# Film profiles (JSON files; filename stem = profile key)
+PROFILES_DIR = Path(__file__).parent / "profiles"
+DEFAULT_PROFILE = "standard"

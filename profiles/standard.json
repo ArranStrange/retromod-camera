@@ -1,0 +1,15 @@
+{
+  "name": "Standard",
+  "subtitle": "STD / BALANCED",
+  "order": 1,
+  "box_color": [70, 110, 160],
+  "color_matrix": [
+    [1.04, 0.02, -0.02],
+    [0.01, 1.02, -0.01],
+    [-0.01, 0.01, 0.99]
+  ],
+  "contrast": 1.06,
+  "saturation": 1.05,
+  "grain_strength": 0.04,
+  "tone_curve": [[0.0, 0.0], [0.25, 0.235], [0.5, 0.51], [0.75, 0.785], [1.0, 1.0]]
+}

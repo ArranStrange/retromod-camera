@@ -1,5 +1,6 @@
 """Film simulation profiles."""
 
-from film_profiles.registry import PROFILES, get_profile
+from film_profiles.base import FilmProfile
+from film_profiles.loader import load_profile, load_profiles
 
-__all__ = ["PROFILES", "get_profile"]
+__all__ = ["FilmProfile", "load_profile", "load_profiles"]

@@ -8,17 +8,11 @@ import numpy as np
 import pygame
 
 import config
-from film_profiles.registry import PROFILES, get_profile
-from sources.factory import create_input
+from film_profiles.loader import load_profiles
 from processing.pipeline import FilmSimulator
+from sources.factory import create_input
 from storage.saver import ImageSaver
 from ui.display import DISPLAY_SIZE, RearDisplayUI
-
-PROFILE_KEYS = list(PROFILES.keys())
-
-
-def _profile_from_key_index(index: int) -> str:
-    return PROFILE_KEYS[index % len(PROFILE_KEYS)]
 
 
 def _draw_preview(
@@ -49,24 +43,31 @@ def _draw_preview(
 
 def run() -> None:
     """Main capture loop."""
-    profile_key = config.DEFAULT_PROFILE
-    profile = get_profile(profile_key)
+    profiles = load_profiles(config.PROFILES_DIR)
+    keys = list(profiles)
+    profile = profiles[config.DEFAULT_PROFILE]
     simulator = FilmSimulator(profile)
     saver = ImageSaver()
     ui = RearDisplayUI()
+
+    def switch_profile(index: int) -> None:
+        nonlocal profile
+        profile = profiles[keys[index % len(keys)]]
+        simulator.set_profile(profile)
+        print(f"Profile: {profile.name}")
 
     window_name = "Retromod Camera — Phase 1"
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
 
     print("Retromod Camera — Phase 1 (macOS)")
-    print(f"  Input:   {config.INPUT_SOURCE}")
-    print(f"  Profile: {profile.name}")
-    print(f"  Output:  {config.OUTPUT_DIR}")
+    print(f"  Input:    {config.INPUT_SOURCE}")
+    print(f"  Profiles: {', '.join(profiles[k].name for k in keys)}")
+    print(f"  Output:   {config.OUTPUT_DIR}")
     print()
     print("Controls:")
     print("  SPACE     — capture (save raw + film-sim JPEG)")
-    print("  1-6       — switch film profile")
+    print(f"  1-{len(keys)}       — switch film profile")
     print("  , / .     — cycle profiles")
     print("  Q or ESC  — quit")
     print()
@@ -101,23 +102,12 @@ def run() -> None:
                 if hasattr(camera, "advance"):
                     camera.advance()  # type: ignore[union-attr]
 
-            if ord("1") <= key <= ord("6"):
-                profile_key = _profile_from_key_index(key - ord("1"))
-                profile = get_profile(profile_key)
-                simulator.set_profile(profile)
-                print(f"Profile: {profile.name}")
+            if ord("1") <= key < ord("1") + len(keys):
+                switch_profile(key - ord("1"))
 
-            if key == ord(","):
-                idx = (PROFILE_KEYS.index(profile.key) - 1) % len(PROFILE_KEYS)
-                profile = get_profile(PROFILE_KEYS[idx])
-                simulator.set_profile(profile)
-                print(f"Profile: {profile.name}")
-
-            if key == ord("."):
-                idx = (PROFILE_KEYS.index(profile.key) + 1) % len(PROFILE_KEYS)
-                profile = get_profile(PROFILE_KEYS[idx])
-                simulator.set_profile(profile)
-                print(f"Profile: {profile.name}")
+            if key in (ord(","), ord(".")):
+                step = -1 if key == ord(",") else 1
+                switch_profile(keys.index(profile.key) + step)
 
     cv2.destroyAllWindows()
     ui.quit()

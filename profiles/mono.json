@@ -1,0 +1,16 @@
+{
+  "name": "Mono",
+  "subtitle": "B&W / HIGH CONTRAST",
+  "order": 6,
+  "box_color": [40, 40, 40],
+  "color_matrix": [
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0]
+  ],
+  "contrast": 1.2,
+  "saturation": 0.0,
+  "monochrome": true,
+  "grain_strength": 0.1,
+  "tone_curve": [[0.0, 0.0], [0.3, 0.24], [0.6, 0.62], [1.0, 1.0]]
+}

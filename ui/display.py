@@ -44,9 +44,8 @@ class RearDisplayUI:
         stock_line = self._font_small.render("FILM SIMULATION", True, (255, 255, 255))
         self._surface.blit(stock_line, (27, 78))
 
-        iso_text = self._estimate_iso_label(profile.key)
-        iso = self._font_mono.render(iso_text, True, (255, 255, 255))
-        self._surface.blit(iso, (27, 100))
+        subtitle = self._font_mono.render(profile.subtitle, True, (255, 255, 255))
+        self._surface.blit(subtitle, (27, 100))
 
         # Status bar
         status_y = 178
@@ -76,18 +75,6 @@ class RearDisplayUI:
             fill = pygame.Rect(x + 2, y + 2, fill_width, 8)
             color = (80, 200, 80) if percent > 20 else (220, 80, 60)
             pygame.draw.rect(self._surface, color, fill, border_radius=1)
-
-    @staticmethod
-    def _estimate_iso_label(profile_key: str) -> str:
-        iso_map = {
-            "kodachrome64": "ISO 64",
-            "portra400": "ISO 400",
-            "superia400": "ISO 400",
-            "trix400": "ISO 400",
-            "hp5plus": "ISO 400",
-            "cinestill800t": "ISO 800",
-        }
-        return iso_map.get(profile_key, "ISO ---")
 
     def quit(self) -> None:
         pygame.quit()
