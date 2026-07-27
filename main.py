@@ -1,5 +1,6 @@
 """Application entry point for Phase 1 macOS development."""
 
+import argparse
 import sys
 from typing import NoReturn
 
@@ -37,7 +38,7 @@ def _inset_ui(preview: np.ndarray, ui_surface: pygame.Surface) -> np.ndarray:
     return preview
 
 
-def run() -> None:
+def run(source: str | None = None) -> None:
     """Main capture loop."""
     profiles = load_profiles(config.PROFILES_DIR)
     keys = list(profiles)
@@ -58,8 +59,9 @@ def run() -> None:
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
 
+    source = source or config.INPUT_SOURCE
     print("Retromod Camera — Phase 1 (macOS)")
-    print(f"  Input:    {config.INPUT_SOURCE}")
+    print(f"  Input:    {source}")
     print(f"  Profiles: {', '.join(profiles[k].name for k in keys)}")
     print(f"  Output:   {config.OUTPUT_DIR}")
     print()
@@ -72,7 +74,7 @@ def run() -> None:
     print("  Q or ESC  — quit")
     print()
 
-    with create_input() as camera:
+    with create_input(source) as camera:
         while True:
             frame = camera.read()
             if frame is None:
@@ -145,8 +147,16 @@ def run() -> None:
 
 
 def main() -> NoReturn:
+    parser = argparse.ArgumentParser(description="Retromod camera dev preview")
+    parser.add_argument(
+        "--source",
+        choices=["webcam", "folder", "picamera2"],
+        default=None,
+        help="override INPUT_SOURCE from config.py",
+    )
+    args = parser.parse_args()
     try:
-        run()
+        run(args.source)
     except KeyboardInterrupt:
         print("\nInterrupted.")
     sys.exit(0)
