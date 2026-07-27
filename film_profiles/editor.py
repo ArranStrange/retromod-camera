@@ -48,6 +48,7 @@ PAGES: tuple[tuple[str, tuple[ParamSpec, ...]], ...] = (
             ParamSpec("warmth", "warmth", 0.005, -0.3, 0.3),
             ParamSpec("tint", "tint", 0.005, -0.3, 0.3),
             ParamSpec("saturation", "saturation", 0.02, 0.0, 2.0, default=1.0),
+            ParamSpec("color chrome", "color_chrome", 0.02, 0.0, 1.0),
         ),
     ),
     (
@@ -69,6 +70,7 @@ PAGES: tuple[tuple[str, tuple[ParamSpec, ...]], ...] = (
         "EFFECTS",
         (
             ParamSpec("micro contr", "micro_contrast", 0.01, -1.0, 1.0),
+            ParamSpec("halation", "halation", 0.02, 0.0, 1.0),
             ParamSpec("grain", "grain_strength", 0.01, 0.0, 0.6),
             ParamSpec("grain size", "grain_size", 0.25, 1.0, 8.0, default=1.0),
             ParamSpec("smudge", "color_smudge", 0.02, 0.0, 1.0),

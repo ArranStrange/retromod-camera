@@ -242,3 +242,42 @@ def test_chroma_smudge_blends_colour_but_keeps_luma_edges():
 def test_chroma_smudge_flat_image_unchanged():
     flat = np.full((60, 60, 3), [0.6, 0.4, 0.3], dtype=np.float32)
     np.testing.assert_allclose(ops.chroma_smudge(flat, 0.6), flat, atol=0.01)
+
+
+def test_color_chrome_zero_is_noop(rgb):
+    assert ops.color_chrome(rgb, 0.0) is rgb
+
+
+def test_color_chrome_deepens_saturated_not_neutral():
+    vivid_red = _solid(0.95, 0.15, 0.1)
+    gray = _solid(0.95, 0.95, 0.95)
+    red_out = ops.color_chrome(vivid_red, 1.0)
+    gray_out = ops.color_chrome(gray, 1.0)
+    assert red_out[..., 0].mean() < vivid_red[..., 0].mean() - 0.05
+    np.testing.assert_allclose(gray_out, gray, atol=1e-3)
+
+
+def test_color_chrome_spares_shadows():
+    dark_red = _solid(0.15, 0.03, 0.02)
+    out = ops.color_chrome(dark_red, 1.0)
+    np.testing.assert_allclose(out, dark_red, atol=0.02)
+
+
+def test_halation_zero_is_noop(rgb):
+    assert ops.halation(rgb, 0.0) is rgb
+
+
+def test_halation_glows_warm_around_highlights():
+    img = np.full((120, 120, 3), 0.2, dtype=np.float32)
+    img[50:70, 50:70] = 1.0  # bright source
+    out = ops.halation(img, 1.0)
+    ring = out[45, 60]  # just outside the source
+    assert ring[0] > 0.2 + 0.01          # red lifted
+    assert ring[0] > ring[2] + 0.005     # warmer than blue
+    corner = out[5, 5]
+    np.testing.assert_allclose(corner, 0.2, atol=0.01)  # far field untouched
+
+
+def test_halation_dark_scene_unchanged():
+    dark = np.full((60, 60, 3), 0.3, dtype=np.float32)
+    np.testing.assert_allclose(ops.halation(dark, 1.0), dark, atol=1e-4)

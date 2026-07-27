@@ -51,6 +51,9 @@ def apply_color_stages(rgb: np.ndarray, profile: FilmProfile) -> np.ndarray:
     elif profile.saturation != 1.0:
         rgb = ops.adjust_saturation(rgb, profile.saturation)
 
+    if profile.color_chrome:
+        rgb = ops.color_chrome(rgb, profile.color_chrome)
+
     if profile.grade:
         rgb = ops.color_grade(rgb, profile.grade)
 
@@ -105,6 +108,9 @@ class FilmSimulator:
 
         if profile.micro_contrast:
             rgb = ops.micro_contrast(rgb, profile.micro_contrast)
+
+        if profile.halation:
+            rgb = ops.halation(rgb, profile.halation)
 
         if profile.vignette:
             rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)

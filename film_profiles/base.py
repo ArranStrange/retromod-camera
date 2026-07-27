@@ -27,6 +27,8 @@ class FilmProfile:
     blacks: float = 0.0  # -1..+1
     filmic: float = 0.0  # 0..1, per-channel log-sigmoid strength
     micro_contrast: float = 0.0  # -1..+1, midtone-masked local contrast
+    color_chrome: float = 0.0  # 0..1, deepen saturated colours (Fuji CCE)
+    halation: float = 0.0  # 0..1, warm glow around bright highlights
     shadow_lift: float = 0.0  # lift crushed blacks
     monochrome: bool = False
     hsl: dict | None = None  # {band: {"hue": deg, "sat": -1..1, "lum": -1..1}}

@@ -293,6 +293,43 @@ def _vignette_factor(h: int, w: int, amount_key: int, mid_key: int) -> np.ndarra
     return (1.0 + amount * t)[..., None].astype(np.float32)
 
 
+def color_chrome(rgb: np.ndarray, strength: float) -> np.ndarray:
+    """Fuji Color Chrome Effect: deepen highly saturated colours.
+
+    Per Fuji's description (inspired by Fortia slide film), near-clipping
+    vibrant colours get their luminance pulled down so gradation survives
+    instead of blowing out flat. Darkening scales with saturation squared
+    and brightness, so neutrals and shadows are untouched.
+    """
+    if strength <= 0:
+        return rgb
+
+    mx = rgb.max(axis=2)
+    mn = rgb.min(axis=2)
+    sat = (mx - mn) / np.maximum(mx, 1e-4)
+    depth = 1.0 - strength * 0.3 * (sat * sat) * mx
+    return np.clip(rgb * depth[..., None], 0.0, 1.0)
+
+
+def halation(rgb: np.ndarray, strength: float, threshold: float = 0.75) -> np.ndarray:
+    """Warm glow around bright highlights.
+
+    Light scatters off the film base back into the emulsion, exposing the
+    red-sensitive layer most — hence the characteristic red-orange halo
+    that falls off smoothly around bright sources.
+    """
+    if strength <= 0:
+        return rgb
+
+    y = luma(rgb)
+    mask = np.clip((y - threshold) / (1.0 - threshold), 0.0, 1.0)
+    mask = mask * mask
+    sigma = max(3.0, min(rgb.shape[:2]) / 40.0)
+    glow = cv2.GaussianBlur(mask, (0, 0), sigmaX=sigma)
+    tint = np.array([1.0, 0.38, 0.12], dtype=np.float32)
+    return np.clip(rgb + glow[..., None] * tint * (strength * 0.4), 0.0, 1.0)
+
+
 def chroma_smudge(rgb: np.ndarray, amount: float) -> np.ndarray:
     """Diffuse colour while keeping luminance detail (dye-cloud softness).
 
