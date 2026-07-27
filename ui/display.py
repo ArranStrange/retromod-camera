@@ -13,9 +13,10 @@ class RearDisplayUI:
     def __init__(self) -> None:
         pygame.init()
         self._surface = pygame.Surface((DISPLAY_SIZE, DISPLAY_SIZE))
-        self._font_title = pygame.font.SysFont("Helvetica", 14, bold=True)
-        self._font_small = pygame.font.SysFont("Helvetica", 11)
-        self._font_mono = pygame.font.SysFont("Menlo", 12)
+        # pygame's bundled freesansbold.ttf renders identically on macOS and the Pi
+        self._font_title = pygame.font.Font(None, 20)
+        self._font_small = pygame.font.Font(None, 15)
+        self._font_mono = pygame.font.Font(None, 16)
 
     def render(
         self,
