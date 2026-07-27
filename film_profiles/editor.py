@@ -39,6 +39,7 @@ PAGES: tuple[tuple[str, tuple[ParamSpec, ...]], ...] = (
             ParamSpec("whites", "whites", 0.02, -1.0, 1.0),
             ParamSpec("blacks", "blacks", 0.02, -1.0, 1.0),
             ParamSpec("shadow lift", "shadow_lift", 0.005, 0.0, 0.3),
+            ParamSpec("filmic", "filmic", 0.02, 0.0, 1.0),
         ),
     ),
     (
@@ -67,8 +68,10 @@ PAGES: tuple[tuple[str, tuple[ParamSpec, ...]], ...] = (
     (
         "EFFECTS",
         (
+            ParamSpec("micro contr", "micro_contrast", 0.01, -1.0, 1.0),
             ParamSpec("grain", "grain_strength", 0.01, 0.0, 0.5),
             ParamSpec("grain size", "grain_size", 0.25, 1.0, 8.0, default=1.0),
+            ParamSpec("grain mid", "grain_midtone", 0.02, 0.0, 1.0),
             ParamSpec("vignette", "vignette", 0.02, -1.0, 1.0),
             ParamSpec("vignette mid", "vignette_mid", 0.02, 0.0, 1.0, default=0.5),
         ),

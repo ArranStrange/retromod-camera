@@ -45,8 +45,12 @@ the same files, so tuning a look on the Mac and copying the file to the camera
 is the whole deployment story.
 
 Processing runs entirely in float32 (0-1), quantising to 8-bit only at the
-output, in this order: colour matrix → tone panel → curves → contrast →
-HSL mixer → mono/saturation → colour grade → vignette → grain.
+output, in this order: colour matrix → tone panel → filmic curve → curves →
+contrast → HSL mixer → mono/saturation → colour grade → micro-contrast →
+vignette → grain. The filmic curve, micro-contrast, and midtone grain follow
+the hybrid Fuji/Leica architecture in `docs/hybrid_color_engine.md`; pair
+them with a small negative `exposure` (≈ -0.35) for the Leica-style
+highlight-protection front end.
 
 | Field | Meaning |
 |---|---|
@@ -59,11 +63,14 @@ HSL mixer → mono/saturation → colour grade → vignette → grain.
 | `tone_curve` | Luminance curve as `[x, y]` control points (0-1), smoothly interpolated |
 | `curve_red`, `curve_green`, `curve_blue` | Optional per-channel curves, same format |
 | `contrast`, `saturation`, `brightness` | Global adjustments |
+| `filmic` | 0..1, per-channel log-sigmoid: dense shadows, soft highlight knee, natural highlight desaturation |
+| `micro_contrast` | -1..+1, midtone-masked local contrast (Leica "pop"); negative softens |
 | `shadow_lift` | Lifts crushed blacks |
 | `hsl` | 8-band mixer: `{"red": {"hue": deg, "sat": -1..1, "lum": -1..1}, ...}` (red, orange, yellow, green, aqua, blue, purple, magenta) |
 | `grade` | Split toning: `{"shadows"/"midtones"/"highlights": {"hue": deg, "sat": 0..1}, "balance": -1..1}` |
 | `monochrome` | Black & white sim (grade still applies — use it for sepia/selenium toning) |
 | `grain_strength`, `grain_size` | 0 = none, ~0.3 = heavy; size 1 = fine, larger = coarser |
+| `grain_midtone` | 0 = uniform grain, 1 = midtones only (highlights/deep shadows stay clean) |
 | `vignette`, `vignette_mid` | -1 dark corners .. +1 bright; midpoint of falloff |
 
 ## Tests
