@@ -1,82 +1,37 @@
 {
   "name": "Standard",
-  "subtitle": "STD / BALANCED",
+  "subtitle": "GOLD 200 / CHROME",
   "order": 1,
-  "box_color": [
-    70,
-    110,
-    160
-  ],
+  "box_color": [225, 170, 30],
   "color_matrix": [
-    [
-      1.04,
-      0.02,
-      -0.02
-    ],
-    [
-      0.01,
-      1.02,
-      -0.01
-    ],
-    [
-      -0.01,
-      0.01,
-      0.99
-    ]
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, 1.0]
   ],
-  "contrast": 1.06,
-  "saturation": 1.05,
-  "grain_strength": 0.13,
-  "tone_curve": [
-    [
-      0.0,
-      0.0
-    ],
-    [
-      0.25,
-      0.235
-    ],
-    [
-      0.5,
-      0.51
-    ],
-    [
-      0.75,
-      0.785
-    ],
-    [
-      1.0,
-      1.0
-    ]
-  ],
-  "filmic": 0.47,
-  "micro_contrast": 0.15,
-  "grain_size": 1.0,
-  "exposure": 0.0,
-  "shadow_lift": 0.04,
-  "warmth": 0.015,
-  "grade": {
-    "shadows": {
-      "hue": 15.0
-    },
-    "highlights": {
-      "hue": 5.0
-    }
-  },
+  "warmth": 0.06,
+  "tint": 0.01,
+  "exposure": 0.15,
+  "contrast": 1.1,
+  "saturation": 0.92,
+  "highlights": -0.3,
+  "shadows": -0.08,
+  "whites": -0.05,
+  "filmic": 0.3,
+  "micro_contrast": 0.05,
+  "tone_curve": [[0.0, 0.035], [0.25, 0.22], [0.55, 0.58], [0.85, 0.88], [1.0, 0.97]],
   "hsl": {
-    "red": {
-      "hue": 2.0,
-      "sat": 0.06
-    },
-    "blue": {
-      "hue": -5.0,
-      "sat": -0.04
-    },
-    "magenta": {
-      "hue": 1.0
-    },
-    "purple": {
-      "sat": -0.04
-    }
-  }
+    "red": {"hue": 4.0, "sat": 0.08},
+    "orange": {"sat": 0.12, "lum": 0.06},
+    "yellow": {"hue": -4.0, "sat": 0.1},
+    "green": {"hue": -12.0, "sat": -0.15},
+    "aqua": {"sat": -0.15},
+    "blue": {"hue": -12.0, "sat": -0.2, "lum": -0.05}
+  },
+  "grade": {
+    "shadows": {"hue": 180.0, "sat": 0.07},
+    "highlights": {"hue": 48.0, "sat": 0.12},
+    "balance": 0.1
+  },
+  "grain_strength": 0.28,
+  "grain_size": 1.5
 }
