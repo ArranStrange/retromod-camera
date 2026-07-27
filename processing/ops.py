@@ -7,6 +7,8 @@ intermediate steps never quantise.
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 import cv2
 import numpy as np
 
@@ -34,25 +36,33 @@ def apply_color_matrix(rgb: np.ndarray, matrix: np.ndarray) -> np.ndarray:
 def apply_color_lut(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     """Apply a baked (n, n, n, 3) colour LUT with trilinear interpolation."""
     n = lut.shape[0]
+    nn = n * n
     flat = lut.reshape(-1, 3)
+    shape = rgb.shape
 
-    x = np.clip(rgb, 0.0, 1.0) * (n - 1)
-    i0 = np.minimum(x.astype(np.int32), n - 2)
+    x = np.clip(rgb, 0.0, 1.0).reshape(-1, 3) * (n - 1)
+    i0 = x.astype(np.int32)
+    np.minimum(i0, n - 2, out=i0)
     f = x - i0
-    r0, g0, b0 = i0[..., 0], i0[..., 1], i0[..., 2]
-    fr, fg, fb = f[..., 0:1], f[..., 1:2], f[..., 2:3]
+    fr, fg, fb = f[:, 0:1], f[:, 1:2], f[:, 2:3]
 
-    def corner(ri: np.ndarray, gi: np.ndarray, bi: np.ndarray) -> np.ndarray:
-        return flat[(ri * n + gi) * n + bi]
+    base = (i0[:, 0] * n + i0[:, 1]) * n + i0[:, 2]
+    c000 = flat.take(base, axis=0)
+    c001 = flat.take(base + 1, axis=0)
+    c010 = flat.take(base + n, axis=0)
+    c011 = flat.take(base + n + 1, axis=0)
+    c100 = flat.take(base + nn, axis=0)
+    c101 = flat.take(base + nn + 1, axis=0)
+    c110 = flat.take(base + nn + n, axis=0)
+    c111 = flat.take(base + nn + n + 1, axis=0)
 
-    c00 = corner(r0, g0, b0) * (1 - fb) + corner(r0, g0, b0 + 1) * fb
-    c01 = corner(r0, g0 + 1, b0) * (1 - fb) + corner(r0, g0 + 1, b0 + 1) * fb
-    c10 = corner(r0 + 1, g0, b0) * (1 - fb) + corner(r0 + 1, g0, b0 + 1) * fb
-    c11 = corner(r0 + 1, g0 + 1, b0) * (1 - fb) + corner(r0 + 1, g0 + 1, b0 + 1) * fb
-
-    c0 = c00 * (1 - fg) + c01 * fg
-    c1 = c10 * (1 - fg) + c11 * fg
-    return c0 * (1 - fr) + c1 * fr
+    c00 = c000 + (c001 - c000) * fb
+    c01 = c010 + (c011 - c010) * fb
+    c10 = c100 + (c101 - c100) * fb
+    c11 = c110 + (c111 - c110) * fb
+    c0 = c00 + (c01 - c00) * fg
+    c1 = c10 + (c11 - c10) * fg
+    return (c0 + (c1 - c0) * fr).reshape(shape)
 
 
 def apply_tone_curve(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
@@ -269,15 +279,10 @@ def to_monochrome(rgb: np.ndarray) -> np.ndarray:
     return np.repeat(luma(rgb)[..., None], 3, axis=2)
 
 
-def vignette(rgb: np.ndarray, amount: float, midpoint: float = 0.5) -> np.ndarray:
-    """Radial exposure falloff. amount: -1 (dark corners) .. +1 (bright).
-
-    midpoint: 0..1, how far from centre the falloff starts.
-    """
-    if not amount:
-        return rgb
-
-    h, w = rgb.shape[:2]
+@lru_cache(maxsize=2)
+def _vignette_factor(h: int, w: int, amount_key: int, mid_key: int) -> np.ndarray:
+    amount = amount_key / 1000.0
+    midpoint = mid_key / 1000.0
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     nx = (xx / (w - 1)) * 2.0 - 1.0
     ny = (yy / (h - 1)) * 2.0 - 1.0
@@ -285,4 +290,18 @@ def vignette(rgb: np.ndarray, amount: float, midpoint: float = 0.5) -> np.ndarra
 
     t = np.clip((dist - midpoint) / max(1.0 - midpoint, 1e-4), 0.0, 1.0)
     t = t * t * (3.0 - 2.0 * t)  # smoothstep
-    return np.clip(rgb * (1.0 + amount * t)[..., None], 0.0, 1.0)
+    return (1.0 + amount * t)[..., None]
+
+
+def vignette(rgb: np.ndarray, amount: float, midpoint: float = 0.5) -> np.ndarray:
+    """Radial exposure falloff. amount: -1 (dark corners) .. +1 (bright).
+
+    midpoint: 0..1, how far from centre the falloff starts. The radial
+    mask is cached per (size, params) since it is frame-independent.
+    """
+    if not amount:
+        return rgb
+
+    h, w = rgb.shape[:2]
+    factor = _vignette_factor(h, w, round(amount * 1000), round(midpoint * 1000))
+    return np.clip(rgb * factor, 0.0, 1.0)
