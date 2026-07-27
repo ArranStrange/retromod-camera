@@ -135,3 +135,19 @@ def test_unknown_hsl_band_rejected(tmp_path):
     )
     with pytest.raises(ValueError):
         load_profile(path)
+
+
+def test_unknown_grade_zone_rejected(tmp_path):
+    path = tmp_path / "badgrade.json"
+    path.write_text(
+        json.dumps(
+            {
+                "name": "Bad Grade",
+                "box_color": [0, 0, 0],
+                "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                "grade": {"quartertones": {"hue": 10, "sat": 0.2}},
+            }
+        )
+    )
+    with pytest.raises(ValueError):
+        load_profile(path)

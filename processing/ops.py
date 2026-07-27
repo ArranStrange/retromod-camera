@@ -150,6 +150,48 @@ def hsl_mixer(rgb: np.ndarray, adjustments: dict[str, dict]) -> np.ndarray:
     return np.clip(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB), 0.0, 1.0)
 
 
+GRADE_ZONES = ("shadows", "midtones", "highlights")
+
+
+def _hue_to_rgb(hue_deg: float) -> np.ndarray:
+    px = np.array([[[hue_deg % 360.0, 1.0, 1.0]]], dtype=np.float32)
+    return cv2.cvtColor(px, cv2.COLOR_HSV2RGB)[0, 0]
+
+
+def color_grade(rgb: np.ndarray, grade: dict) -> np.ndarray:
+    """Split toning: tint shadows/midtones/highlights independently.
+
+    grade: {"shadows": {"hue": deg, "sat": 0..1}, "midtones": ..., "highlights": ...,
+            "balance": -1..+1}  (positive balance widens the highlight zone)
+    Tints are luma-neutral offsets so overall brightness holds steady.
+    """
+    if not grade:
+        return rgb
+
+    y = luma(rgb)
+    balance = float(grade.get("balance", 0.0))
+    yb = np.clip(y + balance * 0.25, 0.0, 1.0)
+    weights = {
+        "shadows": (1.0 - yb) ** 2,
+        "midtones": 2.0 * yb * (1.0 - yb),
+        "highlights": yb**2,
+    }
+
+    out = rgb
+    for zone, w in weights.items():
+        adj = grade.get(zone)
+        if not adj:
+            continue
+        strength = float(adj.get("sat", 0.0))
+        if strength <= 0:
+            continue
+        tint = _hue_to_rgb(float(adj.get("hue", 0.0)))
+        offset = (tint - tint @ LUMA_WEIGHTS) * strength * 0.35
+        out = out + w[..., None] * offset[None, None, :]
+
+    return np.clip(out, 0.0, 1.0)
+
+
 def adjust_saturation(rgb: np.ndarray, saturation: float) -> np.ndarray:
     if saturation == 1.0:
         return rgb

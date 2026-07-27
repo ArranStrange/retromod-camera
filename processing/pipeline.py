@@ -60,5 +60,8 @@ class FilmSimulator:
         elif profile.saturation != 1.0:
             rgb = ops.adjust_saturation(rgb, profile.saturation)
 
+        if profile.grade:
+            rgb = ops.color_grade(rgb, profile.grade)
+
         rgb = add_grain(rgb, profile.grain_strength, seed=grain_seed)
         return ops.to_bgr_u8(rgb)

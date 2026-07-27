@@ -9,7 +9,7 @@ import numpy as np
 
 from film_profiles.base import FilmProfile
 from film_profiles.curves import build_tone_lut
-from processing.ops import HSL_BAND_CENTERS
+from processing.ops import GRADE_ZONES, HSL_BAND_CENTERS
 
 
 def profile_from_dict(key: str, data: dict) -> FilmProfile:
@@ -37,6 +37,12 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
         if unknown:
             raise ValueError(f"{key}: unknown hsl bands {sorted(unknown)}")
 
+    grade = data.get("grade")
+    if grade:
+        unknown = set(grade) - set(GRADE_ZONES) - {"balance"}
+        if unknown:
+            raise ValueError(f"{key}: unknown grade zones {sorted(unknown)}")
+
     return FilmProfile(
         key=key,
         name=data["name"],
@@ -55,6 +61,7 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
         shadow_lift=data.get("shadow_lift", 0.0),
         monochrome=data.get("monochrome", False),
         hsl=hsl,
+        grade=grade,
         grain_strength=data.get("grain_strength", 0.0),
         tone_curve=curve("tone_curve"),
         curve_red=curve("curve_red"),

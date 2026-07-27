@@ -105,3 +105,33 @@ def test_hsl_lum_brightens_band():
     green = _solid(0.2, 0.7, 0.2)
     out = ops.hsl_mixer(green, {"green": {"lum": 1.0}})
     assert out[..., 1].mean() > green[..., 1].mean()
+
+
+def test_grade_empty_is_noop(rgb):
+    assert ops.color_grade(rgb, {}) is rgb
+
+
+def test_grade_tints_shadows_not_highlights():
+    dark = _solid(0.15, 0.15, 0.15)
+    bright = _solid(0.9, 0.9, 0.9)
+    grade = {"shadows": {"hue": 220.0, "sat": 0.8}}
+    dark_out = ops.color_grade(dark, grade)
+    bright_out = ops.color_grade(bright, grade)
+    # shadows go blue (B > R), highlights barely move
+    assert dark_out[..., 2].mean() > dark_out[..., 0].mean() + 0.02
+    np.testing.assert_allclose(bright_out, bright, atol=0.01)
+
+
+def test_grade_roughly_preserves_luma():
+    mid = _solid(0.5, 0.5, 0.5)
+    out = ops.color_grade(mid, {"midtones": {"hue": 40.0, "sat": 1.0}})
+    assert abs(ops.luma(out).mean() - 0.5) < 0.05
+
+
+def test_grade_balance_shifts_zones():
+    mid = _solid(0.4, 0.4, 0.4)
+    grade = {"highlights": {"hue": 40.0, "sat": 1.0}}
+    neutral = ops.color_grade(mid, grade)
+    pushed = ops.color_grade(mid, {**grade, "balance": 1.0})
+    # positive balance treats midtones more like highlights -> stronger tint
+    assert abs(pushed - mid).sum() > abs(neutral - mid).sum()
