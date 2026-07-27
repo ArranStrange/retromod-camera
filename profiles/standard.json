@@ -26,7 +26,7 @@
   ],
   "contrast": 1.06,
   "saturation": 1.05,
-  "grain_strength": 0.25,
+  "grain_strength": 0.13,
   "tone_curve": [
     [
       0.0,
@@ -49,7 +49,34 @@
       1.0
     ]
   ],
-  "filmic": 0.35,
-  "micro_contrast": 0.12,
-  "grain_size": 1.5
+  "filmic": 0.47,
+  "micro_contrast": 0.15,
+  "grain_size": 1.0,
+  "exposure": 0.0,
+  "shadow_lift": 0.04,
+  "warmth": 0.015,
+  "grade": {
+    "shadows": {
+      "hue": 15.0
+    },
+    "highlights": {
+      "hue": 5.0
+    }
+  },
+  "hsl": {
+    "red": {
+      "hue": 2.0,
+      "sat": 0.06
+    },
+    "blue": {
+      "hue": -5.0,
+      "sat": -0.04
+    },
+    "magenta": {
+      "hue": 1.0
+    },
+    "purple": {
+      "sat": -0.04
+    }
+  }
 }
