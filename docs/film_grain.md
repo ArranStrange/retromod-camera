@@ -35,9 +35,14 @@ shortcut: synthesise a **correlated Gaussian field** and scale it by an
 `film_grain()` therefore:
 
 1. Generates unit Gaussian white noise.
-2. Blurs it to the target correlation length and renormalises to unit
-   variance — this is the grain "clump" structure (AV1 uses an
-   auto-regressive filter for the same purpose).
+2. Builds the clump structure as a **mix of two octaves** (a fine field
+   plus one 2.5x coarser), then concentrates energy into peaks
+   (`sign(g)·|g|^1.4`). Real emulsions have a distribution of grain sizes,
+   and emulation tools characterise the poles as *Kodak: large and sparse*
+   vs *Fuji: tiny and dense* — the octave mix plus peak-shaping lands the
+   texture on the Kodak side, matching the Gold-style look this camera
+   chases. (AV1 uses an auto-regressive filter for the same
+   correlation-shaping purpose.)
 3. Applies it **multiplicatively** (density domain): `out = rgb · (1 + g)`
    with `g = noise · strength · (1 − u)^1.2`. The effective amplitude is
    therefore `u·(1 − u)^1.2` — the Boolean-model response shape, peaking
@@ -56,6 +61,14 @@ shortcut: synthesise a **correlated Gaussian field** and scale it by an
 with image dimensions), so grain looks identical on the 480p preview and a
 full-resolution capture — the way grain has a fixed physical size on a
 negative regardless of print size.
+
+## Live-view motion
+
+A still photograph has one frozen grain realisation, but a preview stream
+showing frozen grain over moving video reads as a dirty window. Live view
+therefore cycles slowly through the pre-built grain bank (a new field every
+few frames — a gentle breathe, not per-frame cine boil), while every capture
+draws its own unique pattern like consecutive frames on a roll.
 
 ## Sources
 

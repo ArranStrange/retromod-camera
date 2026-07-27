@@ -65,6 +65,8 @@ highlight-protection front end.
 | `contrast`, `saturation`, `brightness` | Global adjustments |
 | `filmic` | 0..1, per-channel log-sigmoid: dense shadows, soft highlight knee, natural highlight desaturation |
 | `micro_contrast` | -1..+1, midtone-masked local contrast (Leica "pop"); negative softens |
+| `color_chrome` | 0..1, deepens near-clipping saturated colours to keep gradation (Fuji Color Chrome Effect) |
+| `halation` | 0..1, red-orange glow around bright highlights (light scatter in the emulsion) |
 | `shadow_lift` | Lifts crushed blacks |
 | `hsl` | 8-band mixer: `{"red": {"hue": deg, "sat": -1..1, "lum": -1..1}, ...}` (red, orange, yellow, green, aqua, blue, purple, magenta) |
 | `grade` | Split toning: `{"shadows"/"midtones"/"highlights": {"hue": deg, "sat": 0..1}, "balance": -1..1}` |
