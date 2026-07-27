@@ -68,3 +68,15 @@ def test_grain_size_makes_coarser_noise(frame):
     assert np.abs(np.diff(coarse[:, :, 0], axis=1)).mean() < np.abs(
         np.diff(fine[:, :, 0], axis=1)
     ).mean()
+
+
+def test_midtone_grain_protects_highlights_and_shadows():
+    img = np.zeros((60, 90, 3), dtype=np.float32)
+    img[:, :30] = 0.03   # deep shadow
+    img[:, 30:60] = 0.5  # midtone
+    img[:, 60:] = 0.97   # highlight
+    out = add_grain(img, 0.3, midtone=1.0, seed=5)
+    diff = np.abs(out - img)
+    mid_noise = diff[:, 30:60].mean()
+    assert diff[:, :30].mean() < mid_noise * 0.2
+    assert diff[:, 60:].mean() < mid_noise * 0.2

@@ -72,5 +72,11 @@ class FilmSimulator:
         if profile.vignette:
             rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)
 
-        rgb = add_grain(rgb, profile.grain_strength, size=profile.grain_size, seed=grain_seed)
+        rgb = add_grain(
+            rgb,
+            profile.grain_strength,
+            size=profile.grain_size,
+            midtone=profile.grain_midtone,
+            seed=grain_seed,
+        )
         return ops.to_bgr_u8(rgb)
