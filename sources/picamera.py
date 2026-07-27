@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from input.base import CameraInput
+from sources.base import CameraInput
 
 
 class Picamera2Input(CameraInput):

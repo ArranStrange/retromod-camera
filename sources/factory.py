@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import config
-from input.base import CameraInput
-from input.file_folder import FileFolderInput
-from input.picamera import Picamera2Input
-from input.webcam import WebcamInput
+from sources.base import CameraInput
+from sources.file_folder import FileFolderInput
+from sources.picamera import Picamera2Input
+from sources.webcam import WebcamInput
 
 
 def create_input(source: str | None = None, **kwargs: object) -> CameraInput:

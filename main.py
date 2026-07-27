@@ -9,7 +9,7 @@ import pygame
 
 import config
 from film_profiles.registry import PROFILES, get_profile
-from input.factory import create_input
+from sources.factory import create_input
 from processing.pipeline import FilmSimulator
 from storage.saver import ImageSaver
 from ui.display import DISPLAY_SIZE, RearDisplayUI

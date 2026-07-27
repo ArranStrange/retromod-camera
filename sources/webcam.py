@@ -5,7 +5,7 @@ from typing import Optional
 import cv2
 import numpy as np
 
-from input.base import CameraInput
+from sources.base import CameraInput
 
 
 class WebcamInput(CameraInput):
