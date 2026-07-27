@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import config
-from film_profiles.loader import load_profiles
+from film_profiles.loader import load_profiles, profile_from_dict
 from processing.grain import film_grain
 from processing.pipeline import FilmSimulator
 
@@ -12,6 +12,20 @@ from processing.pipeline import FilmSimulator
 @pytest.fixture(scope="module")
 def profiles():
     return load_profiles(config.PROFILES_DIR)
+
+
+@pytest.fixture(scope="module")
+def mono_profile():
+    return profile_from_dict(
+        "testmono",
+        {
+            "name": "Test Mono",
+            "box_color": [40, 40, 40],
+            "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            "monochrome": True,
+            "grain_strength": 0.2,
+        },
+    )
 
 
 @pytest.fixture()
@@ -27,14 +41,14 @@ def test_process_preserves_shape_and_dtype(profiles, frame):
 
 
 def test_process_is_deterministic_with_seed(profiles, frame):
-    simulator = FilmSimulator(profiles["vivid"])
+    simulator = FilmSimulator(profiles["standard"])
     a = simulator.process(frame, grain_seed=7)
     b = simulator.process(frame, grain_seed=7)
     np.testing.assert_array_equal(a, b)
 
 
-def test_mono_profile_output_is_neutral(profiles, frame):
-    simulator = FilmSimulator(profiles["mono"])
+def test_mono_profile_output_is_neutral(mono_profile, frame):
+    simulator = FilmSimulator(mono_profile)
     out = simulator.process(frame, grain_seed=1)
     np.testing.assert_array_equal(out[:, :, 0], out[:, :, 1])
     np.testing.assert_array_equal(out[:, :, 1], out[:, :, 2])
