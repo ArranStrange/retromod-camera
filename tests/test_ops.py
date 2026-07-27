@@ -152,3 +152,71 @@ def test_vignette_positive_brightens_corners():
     flat = np.full((100, 100, 3), 0.4, dtype=np.float32)
     out = ops.vignette(flat, 0.8, midpoint=0.3)
     assert out[0, 0].mean() > 0.5
+
+
+def test_filmic_zero_is_noop(rgb):
+    assert ops.filmic(rgb, 0.0) is rgb
+
+
+def test_filmic_preserves_endpoints():
+    black = _solid(0.0, 0.0, 0.0)
+    white = _solid(1.0, 1.0, 1.0)
+    np.testing.assert_allclose(ops.filmic(black, 1.0), black, atol=1e-5)
+    np.testing.assert_allclose(ops.filmic(white, 1.0), white, atol=1e-5)
+
+
+def test_filmic_is_monotone():
+    ramp = np.linspace(0, 1, 256, dtype=np.float32).reshape(1, -1, 1).repeat(3, axis=2)
+    out = ops.filmic(ramp, 1.0)
+    assert np.all(np.diff(out[0, :, 0]) >= -1e-6)
+
+
+def test_filmic_densifies_shadows_and_rolls_highlights():
+    shadow = _solid(0.08, 0.08, 0.08)
+    out = ops.filmic(shadow, 1.0)
+    assert out.mean() < shadow.mean()  # steep shadow density
+    # slope flattens near white (compression knee)
+    hi_a, hi_b = _solid(0.85, 0.85, 0.85), _solid(0.95, 0.95, 0.95)
+    gap = ops.filmic(hi_b, 1.0).mean() - ops.filmic(hi_a, 1.0).mean()
+    assert gap < 0.1
+
+
+def test_filmic_desaturates_highlights_per_channel():
+    warm_bright = _solid(0.95, 0.75, 0.55)
+    out = ops.filmic(warm_bright, 1.0)
+    spread_in = warm_bright[0, 0, 0] - warm_bright[0, 0, 2]
+    spread_out = out[0, 0, 0] - out[0, 0, 2]
+    assert spread_out < spread_in  # channels converge near the knee
+
+
+def test_micro_contrast_zero_is_noop(rgb):
+    assert ops.micro_contrast(rgb, 0.0) is rgb
+
+
+def _checker(lo, hi):
+    tile = np.indices((64, 64)).sum(axis=0) % 2
+    img = np.where(tile[..., None] == 1, hi, lo).astype(np.float32)
+    return np.repeat(img, 1, axis=2) if img.shape[2] == 3 else np.dstack([img] * 3)
+
+
+def test_micro_contrast_boosts_midtone_detail():
+    img = _checker(0.45, 0.55)
+    out = ops.micro_contrast(img, 0.5)
+    assert out.std() > img.std()
+
+
+def test_micro_contrast_leaves_shadows_alone():
+    img = _checker(0.02, 0.06)
+    out = ops.micro_contrast(img, 0.5)
+    assert abs(out.std() - img.std()) < 0.005
+
+
+def test_micro_contrast_flat_image_unchanged():
+    flat = np.full((64, 64, 3), 0.5, dtype=np.float32)
+    np.testing.assert_allclose(ops.micro_contrast(flat, 0.5), flat, atol=1e-5)
+
+
+def test_negative_micro_contrast_softens():
+    img = _checker(0.45, 0.55)
+    out = ops.micro_contrast(img, -0.5)
+    assert out.std() < img.std()

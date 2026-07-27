@@ -39,6 +39,48 @@ def apply_tone_curve(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     return np.clip(rgb * scale[..., None], 0.0, 1.0)
 
 
+def filmic(rgb: np.ndarray, strength: float) -> np.ndarray:
+    """Per-channel filmic S-curve (see docs/hybrid_color_engine.md).
+
+    A log-domain sigmoid: steep shadow density, compressive highlight knee.
+    Applied per channel rather than on luma, so highlights desaturate
+    naturally as channels saturate — the film-like roll-off. The spec's
+    piecewise log mapping is discontinuous near black; this uses a
+    continuous endpoint-preserving equivalent (x^a / (x^a + m^a), which is
+    a logistic curve in log-exposure).
+    """
+    if strength <= 0:
+        return rgb
+
+    a, m = 1.7, 0.5
+    x = np.clip(rgb, 0.0, 1.0)
+    xa = x**a
+    curved = xa * (1.0 + m**a) / (xa + m**a)
+    return np.clip(x + (curved - x) * strength, 0.0, 1.0)
+
+
+def midtone_mask(y: np.ndarray) -> np.ndarray:
+    """Gaussian luminance mask peaking at middle grey (spec stage 3/4)."""
+    return np.exp(-((y - 0.5) ** 2) / 0.08)
+
+
+def micro_contrast(rgb: np.ndarray, amount: float) -> np.ndarray:
+    """Leica-style midtone micro-contrast ("3D pop").
+
+    Boosts (or, negative, softens) high-frequency detail only where the
+    midtone mask is strong; highlights and deep shadows stay untouched.
+    The blur radius scales with resolution so the effect matches between
+    the 480p preview and a full-res capture.
+    """
+    if not amount:
+        return rgb
+
+    sigma = max(1.0, 2.0 * min(rgb.shape[:2]) / 480.0)
+    blurred = cv2.GaussianBlur(rgb, (0, 0), sigmaX=sigma)
+    mask = midtone_mask(luma(rgb))
+    return np.clip(rgb + (rgb - blurred) * amount * mask[..., None], 0.0, 1.0)
+
+
 def apply_channel_curves(
     rgb: np.ndarray,
     lut_red: np.ndarray | None = None,

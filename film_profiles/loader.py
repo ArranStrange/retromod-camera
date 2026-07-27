@@ -58,6 +58,8 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
         shadows=data.get("shadows", 0.0),
         whites=data.get("whites", 0.0),
         blacks=data.get("blacks", 0.0),
+        filmic=data.get("filmic", 0.0),
+        micro_contrast=data.get("micro_contrast", 0.0),
         shadow_lift=data.get("shadow_lift", 0.0),
         monochrome=data.get("monochrome", False),
         hsl=hsl,

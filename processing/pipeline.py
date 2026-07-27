@@ -38,6 +38,9 @@ class FilmSimulator:
             blacks=profile.blacks,
         )
 
+        if profile.filmic:
+            rgb = ops.filmic(rgb, profile.filmic)
+
         if profile.tone_curve is not None:
             rgb = ops.apply_tone_curve(rgb, profile.tone_curve)
 
@@ -62,6 +65,9 @@ class FilmSimulator:
 
         if profile.grade:
             rgb = ops.color_grade(rgb, profile.grade)
+
+        if profile.micro_contrast:
+            rgb = ops.micro_contrast(rgb, profile.micro_contrast)
 
         if profile.vignette:
             rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)
