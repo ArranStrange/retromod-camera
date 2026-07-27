@@ -74,6 +74,11 @@ def run(source: str | None = None) -> None:
     print("  Q or ESC  — quit")
     print()
 
+    size = (config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
+    last_frame: np.ndarray | None = None
+    last_profile = None
+    raw_small = processed = None
+
     with create_input(source) as camera:
         while True:
             frame = camera.read()
@@ -81,11 +86,16 @@ def run(source: str | None = None) -> None:
                 print("No frame from input source; exiting.")
                 break
 
-            processed = simulator.process(frame)
-            size = (config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
-            preview = cv2.resize(processed, size)
+            # live view runs the LUT fast path at preview resolution, and
+            # only reprocesses when the frame or profile actually changed
+            if frame is not last_frame or profile is not last_profile:
+                raw_small = cv2.resize(frame, size)
+                processed = simulator.process(raw_small, fast=True)
+                last_frame, last_profile = frame, profile
+
+            preview = processed.copy()
             if split:
-                preview = draw_split(preview, cv2.resize(frame, size))
+                preview = draw_split(preview, raw_small)
             if editor is not None:
                 preview = draw_editor_panel(preview, editor)
             preview = _inset_ui(preview, ui.render(profile, saver.shot_count))
@@ -97,7 +107,8 @@ def run(source: str | None = None) -> None:
                 break
 
             if key == ord(" "):
-                raw_path, film_path = saver.save_pair(frame, processed, profile.key)
+                full = simulator.process(frame)  # precise pipeline at full res
+                raw_path, film_path = saver.save_pair(frame, full, profile.key)
                 print(f"Saved #{saver.shot_count}: {film_path.name}")
                 if config.SAVE_RAW:
                     print(f"           raw: {raw_path.name}")
