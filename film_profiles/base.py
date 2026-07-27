@@ -20,6 +20,11 @@ class FilmProfile:
     contrast: float = 1.0
     saturation: float = 1.0
     brightness: float = 0.0  # additive offset in 0-1 space after normalize
+    exposure: float = 0.0  # stops
+    highlights: float = 0.0  # -1..+1
+    shadows: float = 0.0  # -1..+1
+    whites: float = 0.0  # -1..+1
+    blacks: float = 0.0  # -1..+1
     shadow_lift: float = 0.0  # lift crushed blacks
     monochrome: bool = False
     grain_strength: float = 0.0  # 0 = off

@@ -29,6 +29,15 @@ class FilmSimulator:
 
         rgb = ops.apply_color_matrix(rgb, profile.color_matrix)
 
+        rgb = ops.tone_panel(
+            rgb,
+            exposure=profile.exposure,
+            highlights=profile.highlights,
+            shadows=profile.shadows,
+            whites=profile.whites,
+            blacks=profile.blacks,
+        )
+
         if profile.tone_curve is not None:
             rgb = ops.apply_tone_curve(rgb, profile.tone_curve)
 

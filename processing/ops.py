@@ -39,6 +39,39 @@ def apply_tone_curve(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     return np.clip(rgb * scale[..., None], 0.0, 1.0)
 
 
+def tone_panel(
+    rgb: np.ndarray,
+    exposure: float = 0.0,
+    highlights: float = 0.0,
+    shadows: float = 0.0,
+    whites: float = 0.0,
+    blacks: float = 0.0,
+) -> np.ndarray:
+    """Lightroom-style basic tone adjustments, all in -1..+1 (exposure in stops).
+
+    highlights/shadows use bell weights peaked in their range so the other
+    end of the tonal scale is untouched; whites/blacks move the endpoints.
+    """
+    if exposure:
+        rgb = np.clip(rgb * 2.0**exposure, 0.0, 1.0)
+
+    if highlights or shadows or whites or blacks:
+        y = luma(rgb)
+        y_new = y.copy()
+        if highlights:
+            y_new += highlights * (y**2 * (1.0 - y)) * 2.0
+        if shadows:
+            y_new += shadows * ((1.0 - y) ** 2 * y) * 2.0
+        if whites:
+            y_new += whites * y**3 * 0.5
+        if blacks:
+            y_new += blacks * (1.0 - y) ** 3 * 0.5
+        scale = np.clip(y_new, 0.0, 1.0) / np.maximum(y, 1e-4)
+        rgb = np.clip(rgb * scale[..., None], 0.0, 1.0)
+
+    return rgb
+
+
 def adjust_tone(
     rgb: np.ndarray,
     contrast: float = 1.0,
