@@ -33,6 +33,7 @@ class FilmProfile:
     grade: dict | None = None  # split toning; see processing.ops.color_grade
     grain_strength: float = 0.0  # 0 = off
     grain_size: float = 1.0  # clump size relative to frame; 1 fine, 3+ coarse
+    color_smudge: float = 0.0  # 0..1, chroma diffusion (dye-cloud softness)
     vignette: float = 0.0  # -1 dark corners .. +1 bright
     vignette_mid: float = 0.5  # where falloff starts (0..1)
     tone_curve: np.ndarray | None = None  # 256-entry luminance LUT, or None

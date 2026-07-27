@@ -220,3 +220,25 @@ def test_negative_micro_contrast_softens():
     img = _checker(0.45, 0.55)
     out = ops.micro_contrast(img, -0.5)
     assert out.std() < img.std()
+
+
+def test_chroma_smudge_zero_is_noop(rgb):
+    assert ops.chroma_smudge(rgb, 0.0) is rgb
+
+
+def test_chroma_smudge_blends_colour_but_keeps_luma_edges():
+    # two half-fields with different colour but near-equal luminance
+    img = np.zeros((400, 400, 3), dtype=np.float32)
+    img[:, :200] = [0.6, 0.35, 0.5]
+    img[:, 200:] = [0.3, 0.45, 0.6]
+    out = ops.chroma_smudge(img, 1.0)
+    mid_in = np.abs(img[:, 199] - img[:, 201]).mean()
+    mid_out = np.abs(out[:, 199] - out[:, 201]).mean()
+    assert mid_out < mid_in * 0.7  # colour boundary softened
+    y_in, y_out = ops.luma(img), ops.luma(out)
+    assert np.abs(y_in - y_out).max() < 0.05  # luminance detail held
+
+
+def test_chroma_smudge_flat_image_unchanged():
+    flat = np.full((60, 60, 3), [0.6, 0.4, 0.3], dtype=np.float32)
+    np.testing.assert_allclose(ops.chroma_smudge(flat, 0.6), flat, atol=0.01)

@@ -93,6 +93,7 @@
     },
     "balance": 0.1
   },
-  "grain_strength": 0.12,
-  "grain_size": 1.2
+  "grain_strength": 0.1,
+  "grain_size": 1.2,
+  "color_smudge": 0.4
 }

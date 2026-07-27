@@ -47,7 +47,7 @@
       "sat": 0.1
     }
   },
-  "grain_strength": 0.15,
+  "grain_strength": 0.13,
   "grain_size": 1.5,
   "tone_curve": [
     [
@@ -72,5 +72,6 @@
     ]
   ],
   "filmic": 0.25,
-  "micro_contrast": 0.1
+  "micro_contrast": 0.1,
+  "color_smudge": 0.45
 }

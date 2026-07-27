@@ -114,4 +114,8 @@ class FilmSimulator:
         # finer — attenuate in the fast path so live view matches that
         strength = profile.grain_strength * (0.7 if fast else 1.0)
         rgb = film_grain(rgb, strength, size=profile.grain_size, seed=grain_seed)
+
+        if profile.color_smudge and not profile.monochrome:
+            rgb = ops.chroma_smudge(rgb, profile.color_smudge)
+
         return ops.to_bgr_u8(rgb)

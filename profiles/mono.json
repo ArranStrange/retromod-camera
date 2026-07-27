@@ -29,7 +29,7 @@
   "monochrome": true,
   "whites": 0.1,
   "blacks": -0.1,
-  "grain_strength": 0.22,
+  "grain_strength": 0.2,
   "grain_size": 2.0,
   "vignette": -0.1,
   "tone_curve": [

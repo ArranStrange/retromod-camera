@@ -43,7 +43,7 @@ def apply_color_lut(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     x = np.clip(rgb, 0.0, 1.0).reshape(-1, 3) * (n - 1)
     i0 = x.astype(np.int32)
     np.minimum(i0, n - 2, out=i0)
-    f = x - i0
+    f = x - i0.astype(np.float32)  # keep float32: f32 - i32 promotes to f64
     fr, fg, fb = f[:, 0:1], f[:, 1:2], f[:, 2:3]
 
     base = (i0[:, 0] * n + i0[:, 1]) * n + i0[:, 2]
@@ -290,7 +290,24 @@ def _vignette_factor(h: int, w: int, amount_key: int, mid_key: int) -> np.ndarra
 
     t = np.clip((dist - midpoint) / max(1.0 - midpoint, 1e-4), 0.0, 1.0)
     t = t * t * (3.0 - 2.0 * t)  # smoothstep
-    return (1.0 + amount * t)[..., None]
+    return (1.0 + amount * t)[..., None].astype(np.float32)
+
+
+def chroma_smudge(rgb: np.ndarray, amount: float) -> np.ndarray:
+    """Diffuse colour while keeping luminance detail (dye-cloud softness).
+
+    Film resolves colour more coarsely than brightness; blurring only the
+    chroma channels reproduces that smudged, organic colour rendering.
+    amount: 0..1, blur radius scales with resolution.
+    """
+    if amount <= 0:
+        return rgb
+
+    h, w = rgb.shape[:2]
+    sigma = amount * min(h, w) / 250.0
+    ycc = cv2.cvtColor(np.clip(rgb, 0.0, 1.0), cv2.COLOR_RGB2YCrCb)
+    ycc[..., 1:] = cv2.GaussianBlur(ycc[..., 1:], (0, 0), sigmaX=sigma)
+    return np.clip(cv2.cvtColor(ycc, cv2.COLOR_YCrCb2RGB), 0.0, 1.0)
 
 
 def vignette(rgb: np.ndarray, amount: float, midpoint: float = 0.5) -> np.ndarray:

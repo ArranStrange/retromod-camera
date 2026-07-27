@@ -53,7 +53,7 @@ def film_grain(
     # apparent size on the frame, like grain on a physical negative;
     # the floor keeps clumps softly resolved at low (preview) resolutions
     # instead of degenerating into harsh single-pixel speckle
-    sigma_px = max(size * min(h, w) / 1500.0, 0.6)
+    sigma_px = max(size * min(h, w) / 1500.0, 0.8)
 
     if h * w <= _MAX_BANK_PIXELS:
         bank = _field_bank(h, w, round(sigma_px * 100))

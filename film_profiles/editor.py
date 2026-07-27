@@ -71,6 +71,7 @@ PAGES: tuple[tuple[str, tuple[ParamSpec, ...]], ...] = (
             ParamSpec("micro contr", "micro_contrast", 0.01, -1.0, 1.0),
             ParamSpec("grain", "grain_strength", 0.01, 0.0, 0.6),
             ParamSpec("grain size", "grain_size", 0.25, 1.0, 8.0, default=1.0),
+            ParamSpec("smudge", "color_smudge", 0.02, 0.0, 1.0),
             ParamSpec("vignette", "vignette", 0.02, -1.0, 1.0),
             ParamSpec("vignette mid", "vignette_mid", 0.02, 0.0, 1.0, default=0.5),
         ),
