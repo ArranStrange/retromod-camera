@@ -26,7 +26,7 @@
   ],
   "contrast": 1.06,
   "saturation": 1.05,
-  "grain_strength": 0.04,
+  "grain_strength": 0.25,
   "tone_curve": [
     [
       0.0,
@@ -51,5 +51,5 @@
   ],
   "filmic": 0.35,
   "micro_contrast": 0.12,
-  "grain_midtone": 0.7
+  "grain_size": 1.5
 }

@@ -29,8 +29,8 @@
   "monochrome": true,
   "whites": 0.1,
   "blacks": -0.1,
-  "grain_strength": 0.1,
-  "grain_size": 1.75,
+  "grain_strength": 0.38,
+  "grain_size": 2.5,
   "vignette": -0.1,
   "tone_curve": [
     [
@@ -51,6 +51,5 @@
     ]
   ],
   "filmic": 0.3,
-  "micro_contrast": 0.22,
-  "grain_midtone": 0.6
+  "micro_contrast": 0.22
 }

@@ -34,7 +34,7 @@
       "sat": 0.1
     }
   },
-  "grain_strength": 0.05,
+  "grain_strength": 0.25,
   "vignette": -0.15,
   "vignette_mid": 0.55,
   "tone_curve": [
@@ -57,5 +57,5 @@
   ],
   "filmic": 0.3,
   "micro_contrast": 0.06,
-  "grain_midtone": 0.7
+  "grain_size": 2.0
 }
