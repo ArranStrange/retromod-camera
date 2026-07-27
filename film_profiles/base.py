@@ -27,6 +27,7 @@ class FilmProfile:
     blacks: float = 0.0  # -1..+1
     shadow_lift: float = 0.0  # lift crushed blacks
     monochrome: bool = False
+    hsl: dict | None = None  # {band: {"hue": deg, "sat": -1..1, "lum": -1..1}}
     grain_strength: float = 0.0  # 0 = off
     tone_curve: np.ndarray | None = None  # 256-entry luminance LUT, or None
     curve_red: np.ndarray | None = None  # optional per-channel 256-entry LUTs

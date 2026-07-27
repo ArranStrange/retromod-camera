@@ -52,6 +52,9 @@ class FilmSimulator:
             shadow_lift=profile.shadow_lift,
         )
 
+        if profile.hsl and not profile.monochrome:
+            rgb = ops.hsl_mixer(rgb, profile.hsl)
+
         if profile.monochrome:
             rgb = ops.to_monochrome(rgb)
         elif profile.saturation != 1.0:

@@ -65,3 +65,43 @@ def test_channel_curve_affects_only_its_channel(rgb):
 
 def test_channel_curves_all_none_is_noop(rgb):
     assert ops.apply_channel_curves(rgb) is rgb
+
+
+def _solid(r, g, b):
+    px = np.zeros((8, 8, 3), dtype=np.float32)
+    px[..., 0], px[..., 1], px[..., 2] = r, g, b
+    return px
+
+
+def test_hsl_empty_is_noop(rgb):
+    assert ops.hsl_mixer(rgb, {}) is rgb
+
+
+def test_hsl_band_desaturates_only_its_band():
+    red = _solid(0.8, 0.2, 0.2)
+    blue = _solid(0.2, 0.2, 0.8)
+    adj = {"red": {"sat": -1.0}}
+    red_out = ops.hsl_mixer(red, adj)
+    blue_out = ops.hsl_mixer(blue, adj)
+    # red pixels lose most saturation, blue untouched
+    assert red_out.std(axis=2).mean() < red.std(axis=2).mean() * 0.2
+    np.testing.assert_allclose(blue_out, blue, atol=1e-3)
+
+
+def test_hsl_neutrals_protected():
+    gray = _solid(0.5, 0.5, 0.5)
+    out = ops.hsl_mixer(gray, {"red": {"hue": 30, "sat": 1.0, "lum": 1.0}})
+    np.testing.assert_allclose(out, gray, atol=1e-3)
+
+
+def test_hsl_hue_shift_moves_hue():
+    red = _solid(0.8, 0.1, 0.1)
+    out = ops.hsl_mixer(red, {"red": {"hue": 40.0}})
+    # shifting red towards orange/yellow raises green channel
+    assert out[..., 1].mean() > red[..., 1].mean() + 0.05
+
+
+def test_hsl_lum_brightens_band():
+    green = _solid(0.2, 0.7, 0.2)
+    out = ops.hsl_mixer(green, {"green": {"lum": 1.0}})
+    assert out[..., 1].mean() > green[..., 1].mean()

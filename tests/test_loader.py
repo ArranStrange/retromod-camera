@@ -119,3 +119,19 @@ def test_channel_curves_load(tmp_path):
     assert profile.curve_red is not None
     assert profile.curve_red.shape == (256,)
     assert profile.curve_green is None
+
+
+def test_unknown_hsl_band_rejected(tmp_path):
+    path = tmp_path / "badhsl.json"
+    path.write_text(
+        json.dumps(
+            {
+                "name": "Bad HSL",
+                "box_color": [0, 0, 0],
+                "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                "hsl": {"teal": {"sat": 0.5}},
+            }
+        )
+    )
+    with pytest.raises(ValueError):
+        load_profile(path)

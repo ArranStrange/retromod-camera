@@ -103,6 +103,53 @@ def adjust_tone(
     return np.clip(rgb, 0.0, 1.0)
 
 
+HSL_BAND_CENTERS = {
+    "red": 0.0,
+    "orange": 30.0,
+    "yellow": 60.0,
+    "green": 120.0,
+    "aqua": 180.0,
+    "blue": 240.0,
+    "purple": 280.0,
+    "magenta": 320.0,
+}
+_HSL_BAND_WIDTH = 60.0  # degrees to zero influence
+
+
+def hsl_mixer(rgb: np.ndarray, adjustments: dict[str, dict]) -> np.ndarray:
+    """Lightroom-style HSL mixer.
+
+    adjustments: {band: {"hue": degrees, "sat": -1..+1, "lum": -1..+1}}
+    Each band's influence falls off smoothly over 60 degrees and is
+    weighted by pixel saturation so neutrals stay neutral.
+    """
+    if not adjustments:
+        return rgb
+
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)  # float32: H 0-360, S/V 0-1
+    hue, sat, val = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+
+    hue_shift = np.zeros_like(hue)
+    sat_mult = np.ones_like(sat)
+    val_mult = np.ones_like(val)
+
+    for band, adj in adjustments.items():
+        center = HSL_BAND_CENTERS[band]
+        dist = np.abs(((hue - center + 180.0) % 360.0) - 180.0)
+        w = np.clip(1.0 - dist / _HSL_BAND_WIDTH, 0.0, 1.0)
+        w = w * w * (3.0 - 2.0 * w)  # smoothstep
+        w *= np.minimum(sat * 2.0, 1.0)  # protect near-neutrals
+
+        hue_shift += float(adj.get("hue", 0.0)) * w
+        sat_mult += float(adj.get("sat", 0.0)) * w
+        val_mult += float(adj.get("lum", 0.0)) * 0.5 * w
+
+    hsv[..., 0] = (hue + hue_shift) % 360.0
+    hsv[..., 1] = np.clip(sat * sat_mult, 0.0, 1.0)
+    hsv[..., 2] = np.clip(val * val_mult, 0.0, 1.0)
+    return np.clip(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB), 0.0, 1.0)
+
+
 def adjust_saturation(rgb: np.ndarray, saturation: float) -> np.ndarray:
     if saturation == 1.0:
         return rgb
