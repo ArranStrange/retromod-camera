@@ -93,7 +93,9 @@ def run(source: str | None = None) -> None:
                 raw_small = cv2.resize(frame, size)
                 if denoise:
                     raw_small = cv2.bilateralFilter(raw_small, 5, 40, 40)
-                processed = simulator.process(raw_small, fast=True)
+                # fixed grain seed: stills grain is frozen, not boiling like
+                # cine film — each capture still gets its own unique pattern
+                processed = simulator.process(raw_small, grain_seed=0, fast=True)
                 last_frame, last_profile = frame, profile
 
             preview = processed.copy()
