@@ -11,6 +11,12 @@
   "contrast": 0.92,
   "saturation": 0.78,
   "shadow_lift": 0.05,
+  "highlights": -0.2,
+  "grade": {
+    "shadows": {"hue": 190.0, "sat": 0.1}
+  },
   "grain_strength": 0.05,
+  "vignette": -0.15,
+  "vignette_mid": 0.55,
   "tone_curve": [[0.0, 0.04], [0.3, 0.3], [0.7, 0.72], [1.0, 0.96]]
 }

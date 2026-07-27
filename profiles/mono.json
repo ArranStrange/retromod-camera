@@ -11,6 +11,10 @@
   "contrast": 1.2,
   "saturation": 0.0,
   "monochrome": true,
+  "whites": 0.1,
+  "blacks": -0.1,
   "grain_strength": 0.1,
+  "grain_size": 1.75,
+  "vignette": -0.1,
   "tone_curve": [[0.0, 0.0], [0.3, 0.24], [0.6, 0.62], [1.0, 1.0]]
 }
