@@ -5,6 +5,8 @@ from pathlib import Path
 # Input source: "webcam", "folder", or "picamera2"
 INPUT_SOURCE = "webcam"
 WEBCAM_INDEX = 0
+# webcams add sensor noise that reads as fake grain; smooth it before the sim
+DENOISE_WEBCAM = True
 SAMPLE_FOLDER = Path(__file__).parent / "samples"
 
 # Output

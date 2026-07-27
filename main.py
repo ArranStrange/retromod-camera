@@ -75,6 +75,7 @@ def run(source: str | None = None) -> None:
     print()
 
     size = (config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
+    denoise = source == "webcam" and config.DENOISE_WEBCAM
     last_frame: np.ndarray | None = None
     last_profile = None
     raw_small = processed = None
@@ -90,6 +91,8 @@ def run(source: str | None = None) -> None:
             # only reprocesses when the frame or profile actually changed
             if frame is not last_frame or profile is not last_profile:
                 raw_small = cv2.resize(frame, size)
+                if denoise:
+                    raw_small = cv2.bilateralFilter(raw_small, 5, 40, 40)
                 processed = simulator.process(raw_small, fast=True)
                 last_frame, last_profile = frame, profile
 
@@ -107,7 +110,8 @@ def run(source: str | None = None) -> None:
                 break
 
             if key == ord(" "):
-                full = simulator.process(frame)  # precise pipeline at full res
+                src = cv2.bilateralFilter(frame, 5, 40, 40) if denoise else frame
+                full = simulator.process(src)  # precise pipeline at full res
                 raw_path, film_path = saver.save_pair(frame, full, profile.key)
                 print(f"Saved #{saver.shot_count}: {film_path.name}")
                 if config.SAVE_RAW:
