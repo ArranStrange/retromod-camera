@@ -109,7 +109,9 @@ class FilmSimulator:
         if profile.vignette:
             rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)
 
-        rgb = film_grain(
-            rgb, profile.grain_strength, size=profile.grain_size, seed=grain_seed
-        )
+        # preview frames are low-res, so grain lands at full contrast; a real
+        # capture viewed fit-to-screen averages neighbouring grain and looks
+        # finer — attenuate in the fast path so live view matches that
+        strength = profile.grain_strength * (0.7 if fast else 1.0)
+        rgb = film_grain(rgb, strength, size=profile.grain_size, seed=grain_seed)
         return ops.to_bgr_u8(rgb)

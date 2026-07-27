@@ -16,9 +16,8 @@ _MAX_BANK_PIXELS = 1_500_000  # bank small frames only; captures generate direct
 def _make_field(h: int, w: int, sigma_px: float, seed: int | None) -> np.ndarray:
     rng = np.random.default_rng(seed)
     noise = rng.standard_normal((h, w)).astype(np.float32)
-    if sigma_px >= 0.3:
-        noise = cv2.GaussianBlur(noise, (0, 0), sigmaX=sigma_px)
-        noise /= max(float(noise.std()), 1e-6)
+    noise = cv2.GaussianBlur(noise, (0, 0), sigmaX=sigma_px)
+    noise /= max(float(noise.std()), 1e-6)
     return noise
 
 
@@ -51,8 +50,10 @@ def film_grain(
 
     h, w = rgb.shape[:2]
     # correlation length scales with resolution so grain has a fixed
-    # apparent size on the frame, like grain on a physical negative
-    sigma_px = size * min(h, w) / 1500.0
+    # apparent size on the frame, like grain on a physical negative;
+    # the floor keeps clumps softly resolved at low (preview) resolutions
+    # instead of degenerating into harsh single-pixel speckle
+    sigma_px = max(size * min(h, w) / 1500.0, 0.6)
 
     if h * w <= _MAX_BANK_PIXELS:
         bank = _field_bank(h, w, round(sigma_px * 100))

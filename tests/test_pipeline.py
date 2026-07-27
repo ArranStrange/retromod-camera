@@ -89,7 +89,7 @@ def test_grain_is_luminance_only():
 
 
 def test_grain_size_makes_coarser_clumps():
-    rgb = np.full((240, 320, 3), 0.5, dtype=np.float32)
+    rgb = np.full((480, 640, 3), 0.5, dtype=np.float32)
     fine = film_grain(rgb, 0.3, size=1.0, seed=3) - rgb
     coarse = film_grain(rgb, 0.3, size=4.0, seed=3) - rgb
     # coarse grain varies less between adjacent pixels

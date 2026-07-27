@@ -2,11 +2,27 @@
   "name": "Standard",
   "subtitle": "GOLD 200 / CHROME",
   "order": 1,
-  "box_color": [225, 170, 30],
+  "box_color": [
+    225,
+    170,
+    30
+  ],
   "color_matrix": [
-    [1.0, 0.0, 0.0],
-    [0.0, 1.0, 0.0],
-    [0.0, 0.0, 1.0]
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
   ],
   "warmth": 0.06,
   "tint": 0.01,
@@ -18,20 +34,65 @@
   "whites": -0.05,
   "filmic": 0.3,
   "micro_contrast": 0.05,
-  "tone_curve": [[0.0, 0.035], [0.25, 0.22], [0.55, 0.58], [0.85, 0.88], [1.0, 0.97]],
+  "tone_curve": [
+    [
+      0.0,
+      0.035
+    ],
+    [
+      0.25,
+      0.22
+    ],
+    [
+      0.55,
+      0.58
+    ],
+    [
+      0.85,
+      0.88
+    ],
+    [
+      1.0,
+      0.97
+    ]
+  ],
   "hsl": {
-    "red": {"hue": 4.0, "sat": 0.08},
-    "orange": {"sat": 0.12, "lum": 0.06},
-    "yellow": {"hue": -4.0, "sat": 0.1},
-    "green": {"hue": -12.0, "sat": -0.15},
-    "aqua": {"sat": -0.15},
-    "blue": {"hue": -12.0, "sat": -0.2, "lum": -0.05}
+    "red": {
+      "hue": 4.0,
+      "sat": 0.08
+    },
+    "orange": {
+      "sat": 0.12,
+      "lum": 0.06
+    },
+    "yellow": {
+      "hue": -4.0,
+      "sat": 0.1
+    },
+    "green": {
+      "hue": -12.0,
+      "sat": -0.15
+    },
+    "aqua": {
+      "sat": -0.15
+    },
+    "blue": {
+      "hue": -12.0,
+      "sat": -0.2,
+      "lum": -0.05
+    }
   },
   "grade": {
-    "shadows": {"hue": 180.0, "sat": 0.07},
-    "highlights": {"hue": 48.0, "sat": 0.12},
+    "shadows": {
+      "hue": 180.0,
+      "sat": 0.07
+    },
+    "highlights": {
+      "hue": 48.0,
+      "sat": 0.12
+    },
     "balance": 0.1
   },
-  "grain_strength": 0.28,
-  "grain_size": 1.5
+  "grain_strength": 0.22,
+  "grain_size": 1.2
 }
