@@ -39,6 +39,25 @@ def apply_tone_curve(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     return np.clip(rgb * scale[..., None], 0.0, 1.0)
 
 
+def apply_channel_curves(
+    rgb: np.ndarray,
+    lut_red: np.ndarray | None = None,
+    lut_green: np.ndarray | None = None,
+    lut_blue: np.ndarray | None = None,
+) -> np.ndarray:
+    """Map each channel through its own LUT (None = leave channel linear)."""
+    luts = (lut_red, lut_green, lut_blue)
+    if all(lut is None for lut in luts):
+        return rgb
+
+    out = rgb.copy()
+    for channel, lut in enumerate(luts):
+        if lut is not None:
+            xs = np.linspace(0.0, 1.0, lut.size)
+            out[..., channel] = np.interp(rgb[..., channel], xs, lut).astype(np.float32)
+    return out
+
+
 def tone_panel(
     rgb: np.ndarray,
     exposure: float = 0.0,

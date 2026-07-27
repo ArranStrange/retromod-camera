@@ -101,3 +101,21 @@ def test_save_rejects_invalid_data(tmp_path):
             path,
         )
     assert not path.exists()
+
+
+def test_channel_curves_load(tmp_path):
+    path = tmp_path / "curved.json"
+    path.write_text(
+        json.dumps(
+            {
+                "name": "Curved",
+                "box_color": [0, 0, 0],
+                "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                "curve_red": [[0.0, 0.1], [1.0, 0.9]],
+            }
+        )
+    )
+    profile = load_profile(path)
+    assert profile.curve_red is not None
+    assert profile.curve_red.shape == (256,)
+    assert profile.curve_green is None

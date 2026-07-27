@@ -28,14 +28,19 @@ class FilmProfile:
     shadow_lift: float = 0.0  # lift crushed blacks
     monochrome: bool = False
     grain_strength: float = 0.0  # 0 = off
-    tone_curve: np.ndarray | None = None  # 256-entry LUT, or None for linear
+    tone_curve: np.ndarray | None = None  # 256-entry luminance LUT, or None
+    curve_red: np.ndarray | None = None  # optional per-channel 256-entry LUTs
+    curve_green: np.ndarray | None = None
+    curve_blue: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         matrix = np.asarray(self.color_matrix, dtype=np.float32)
         if matrix.shape != (3, 3):
             raise ValueError(f"{self.key}: color_matrix must be 3x3")
 
-        if self.tone_curve is not None:
-            curve = np.asarray(self.tone_curve, dtype=np.float32)
-            if curve.shape != (256,):
-                raise ValueError(f"{self.key}: tone_curve must have 256 entries")
+        for label in ("tone_curve", "curve_red", "curve_green", "curve_blue"):
+            lut = getattr(self, label)
+            if lut is not None:
+                curve = np.asarray(lut, dtype=np.float32)
+                if curve.shape != (256,):
+                    raise ValueError(f"{self.key}: {label} must have 256 entries")

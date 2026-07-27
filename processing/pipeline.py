@@ -41,6 +41,10 @@ class FilmSimulator:
         if profile.tone_curve is not None:
             rgb = ops.apply_tone_curve(rgb, profile.tone_curve)
 
+        rgb = ops.apply_channel_curves(
+            rgb, profile.curve_red, profile.curve_green, profile.curve_blue
+        )
+
         rgb = ops.adjust_tone(
             rgb,
             contrast=profile.contrast,

@@ -26,7 +26,9 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
     if tint:
         matrix[1, 1] += tint
 
-    curve_points = data.get("tone_curve")
+    def curve(field: str) -> np.ndarray | None:
+        points = data.get(field)
+        return build_tone_lut(points) if points else None
 
     return FilmProfile(
         key=key,
@@ -46,7 +48,10 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
         shadow_lift=data.get("shadow_lift", 0.0),
         monochrome=data.get("monochrome", False),
         grain_strength=data.get("grain_strength", 0.0),
-        tone_curve=build_tone_lut(curve_points) if curve_points else None,
+        tone_curve=curve("tone_curve"),
+        curve_red=curve("curve_red"),
+        curve_green=curve("curve_green"),
+        curve_blue=curve("curve_blue"),
     )
 
 

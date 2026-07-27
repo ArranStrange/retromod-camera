@@ -53,3 +53,15 @@ def test_tone_panel_defaults_are_noop(rgb):
 def test_tone_panel_stays_in_range(rgb):
     out = ops.tone_panel(rgb, exposure=2.0, highlights=1.0, shadows=1.0, whites=1.0, blacks=-1.0)
     assert out.min() >= 0.0 and out.max() <= 1.0
+
+
+def test_channel_curve_affects_only_its_channel(rgb):
+    lift_red = np.linspace(0, 1, 256).astype(np.float32) ** 0.5
+    out = ops.apply_channel_curves(rgb, lut_red=lift_red)
+    assert (out[..., 0] >= rgb[..., 0] - 1e-6).all()
+    np.testing.assert_array_equal(out[..., 1], rgb[..., 1])
+    np.testing.assert_array_equal(out[..., 2], rgb[..., 2])
+
+
+def test_channel_curves_all_none_is_noop(rgb):
+    assert ops.apply_channel_curves(rgb) is rgb
