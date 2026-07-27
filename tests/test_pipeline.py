@@ -49,9 +49,22 @@ def test_every_shipped_profile_processes(profiles, frame):
 
 
 def test_zero_grain_is_noop(frame):
-    np.testing.assert_array_equal(add_grain(frame, 0.0), frame)
+    rgb = frame.astype(np.float32) / 255.0
+    np.testing.assert_array_equal(add_grain(rgb, 0.0), rgb)
 
 
 def test_grain_changes_image(frame):
-    grainy = add_grain(frame, 0.2, seed=3)
-    assert not np.array_equal(grainy, frame)
+    rgb = frame.astype(np.float32) / 255.0
+    grainy = add_grain(rgb, 0.2, seed=3)
+    assert not np.array_equal(grainy, rgb)
+    assert grainy.min() >= 0.0 and grainy.max() <= 1.0
+
+
+def test_grain_size_makes_coarser_noise(frame):
+    rgb = np.full((120, 160, 3), 0.5, dtype=np.float32)
+    fine = add_grain(rgb, 0.2, size=1.0, seed=3) - rgb
+    coarse = add_grain(rgb, 0.2, size=4.0, seed=3) - rgb
+    # coarse grain varies less between adjacent pixels
+    assert np.abs(np.diff(coarse[:, :, 0], axis=1)).mean() < np.abs(
+        np.diff(fine[:, :, 0], axis=1)
+    ).mean()
