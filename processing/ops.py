@@ -31,6 +31,30 @@ def apply_color_matrix(rgb: np.ndarray, matrix: np.ndarray) -> np.ndarray:
     return np.clip(rgb @ matrix.T.astype(np.float32), 0.0, 1.0)
 
 
+def apply_color_lut(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
+    """Apply a baked (n, n, n, 3) colour LUT with trilinear interpolation."""
+    n = lut.shape[0]
+    flat = lut.reshape(-1, 3)
+
+    x = np.clip(rgb, 0.0, 1.0) * (n - 1)
+    i0 = np.minimum(x.astype(np.int32), n - 2)
+    f = x - i0
+    r0, g0, b0 = i0[..., 0], i0[..., 1], i0[..., 2]
+    fr, fg, fb = f[..., 0:1], f[..., 1:2], f[..., 2:3]
+
+    def corner(ri: np.ndarray, gi: np.ndarray, bi: np.ndarray) -> np.ndarray:
+        return flat[(ri * n + gi) * n + bi]
+
+    c00 = corner(r0, g0, b0) * (1 - fb) + corner(r0, g0, b0 + 1) * fb
+    c01 = corner(r0, g0 + 1, b0) * (1 - fb) + corner(r0, g0 + 1, b0 + 1) * fb
+    c10 = corner(r0 + 1, g0, b0) * (1 - fb) + corner(r0 + 1, g0, b0 + 1) * fb
+    c11 = corner(r0 + 1, g0 + 1, b0) * (1 - fb) + corner(r0 + 1, g0 + 1, b0 + 1) * fb
+
+    c0 = c00 * (1 - fg) + c01 * fg
+    c1 = c10 * (1 - fg) + c11 * fg
+    return c0 * (1 - fr) + c1 * fr
+
+
 def apply_tone_curve(rgb: np.ndarray, lut: np.ndarray) -> np.ndarray:
     """Map luminance through the LUT, preserving chroma ratios."""
     y = luma(rgb)
