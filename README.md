@@ -69,8 +69,7 @@ highlight-protection front end.
 | `hsl` | 8-band mixer: `{"red": {"hue": deg, "sat": -1..1, "lum": -1..1}, ...}` (red, orange, yellow, green, aqua, blue, purple, magenta) |
 | `grade` | Split toning: `{"shadows"/"midtones"/"highlights": {"hue": deg, "sat": 0..1}, "balance": -1..1}` |
 | `monochrome` | Black & white sim (grade still applies — use it for sepia/selenium toning) |
-| `grain_strength`, `grain_size` | 0 = none, ~0.3 = heavy; size 1 = fine, larger = coarser |
-| `grain_midtone` | 0 = uniform grain, 1 = midtones only (highlights/deep shadows stay clean) |
+| `grain_strength`, `grain_size` | Fuji-style roughness/size: ~0.15 weak, ~0.3 strong; size 1 = fine, 3+ = coarse. Physically-modelled: clumpy, luminance-only, vanishes at pure black/white (see `docs/film_grain.md`) |
 | `vignette`, `vignette_mid` | -1 dark corners .. +1 bright; midpoint of falloff |
 
 ## Tests

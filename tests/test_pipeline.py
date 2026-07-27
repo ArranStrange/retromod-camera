@@ -5,7 +5,7 @@ import pytest
 
 import config
 from film_profiles.loader import load_profiles
-from processing.grain import add_grain
+from processing.grain import film_grain
 from processing.pipeline import FilmSimulator
 
 
@@ -50,33 +50,60 @@ def test_every_shipped_profile_processes(profiles, frame):
 
 def test_zero_grain_is_noop(frame):
     rgb = frame.astype(np.float32) / 255.0
-    np.testing.assert_array_equal(add_grain(rgb, 0.0), rgb)
+    np.testing.assert_array_equal(film_grain(rgb, 0.0), rgb)
 
 
-def test_grain_changes_image(frame):
+def test_grain_is_deterministic_with_seed(frame):
     rgb = frame.astype(np.float32) / 255.0
-    grainy = add_grain(rgb, 0.2, seed=3)
-    assert not np.array_equal(grainy, rgb)
-    assert grainy.min() >= 0.0 and grainy.max() <= 1.0
+    a = film_grain(rgb, 0.3, seed=3)
+    b = film_grain(rgb, 0.3, seed=3)
+    np.testing.assert_array_equal(a, b)
+    assert not np.array_equal(a, rgb)
+    assert a.min() >= 0.0 and a.max() <= 1.0
 
 
-def test_grain_size_makes_coarser_noise(frame):
-    rgb = np.full((120, 160, 3), 0.5, dtype=np.float32)
-    fine = add_grain(rgb, 0.2, size=1.0, seed=3) - rgb
-    coarse = add_grain(rgb, 0.2, size=4.0, seed=3) - rgb
+def test_grain_vanishes_at_pure_black_and_white():
+    img = np.zeros((40, 90, 3), dtype=np.float32)
+    img[:, 30:60] = 0.4  # lower midtone
+    img[:, 60:] = 1.0    # pure white
+    out = film_grain(img, 0.4, seed=5)
+    diff = np.abs(out - img)
+    assert diff[:, :30].max() == 0.0    # pure black: no grains at all
+    assert diff[:, 60:].max() == 0.0    # fully covered: no fluctuation
+    assert diff[:, 30:60].mean() > 0.01
+
+
+def test_grain_response_biased_to_shadows():
+    lower = np.full((60, 60, 3), 0.35, dtype=np.float32)
+    upper = np.full((60, 60, 3), 0.85, dtype=np.float32)
+    lower_noise = np.abs(film_grain(lower, 0.3, seed=7) - lower).mean()
+    upper_noise = np.abs(film_grain(upper, 0.3, seed=7) - upper).mean()
+    assert lower_noise > upper_noise * 1.5
+
+
+def test_grain_is_luminance_only():
+    flat = np.full((60, 60, 3), 0.5, dtype=np.float32)
+    out = film_grain(flat, 0.3, seed=9)
+    np.testing.assert_array_equal(out[..., 0], out[..., 1])
+    np.testing.assert_array_equal(out[..., 1], out[..., 2])
+
+
+def test_grain_size_makes_coarser_clumps():
+    rgb = np.full((240, 320, 3), 0.5, dtype=np.float32)
+    fine = film_grain(rgb, 0.3, size=1.0, seed=3) - rgb
+    coarse = film_grain(rgb, 0.3, size=4.0, seed=3) - rgb
     # coarse grain varies less between adjacent pixels
     assert np.abs(np.diff(coarse[:, :, 0], axis=1)).mean() < np.abs(
         np.diff(fine[:, :, 0], axis=1)
     ).mean()
 
 
-def test_midtone_grain_protects_highlights_and_shadows():
-    img = np.zeros((60, 90, 3), dtype=np.float32)
-    img[:, :30] = 0.03   # deep shadow
-    img[:, 30:60] = 0.5  # midtone
-    img[:, 60:] = 0.97   # highlight
-    out = add_grain(img, 0.3, midtone=1.0, seed=5)
-    diff = np.abs(out - img)
-    mid_noise = diff[:, 30:60].mean()
-    assert diff[:, :30].mean() < mid_noise * 0.2
-    assert diff[:, 60:].mean() < mid_noise * 0.2
+def test_grain_size_scales_with_resolution():
+    small = np.full((120, 160, 3), 0.5, dtype=np.float32)
+    large = np.full((480, 640, 3), 0.5, dtype=np.float32)
+    g_small = film_grain(small, 0.3, size=3.0, seed=3) - small
+    g_large = film_grain(large, 0.3, size=3.0, seed=3) - large
+    # relative clump size holds: per-pixel variation is lower at high res
+    assert np.abs(np.diff(g_large[:, :, 0], axis=1)).mean() < np.abs(
+        np.diff(g_small[:, :, 0], axis=1)
+    ).mean()

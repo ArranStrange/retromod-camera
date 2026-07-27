@@ -6,7 +6,7 @@ import numpy as np
 
 from film_profiles.base import FilmProfile
 from processing import ops
-from processing.grain import add_grain
+from processing.grain import film_grain
 
 
 class FilmSimulator:
@@ -72,11 +72,7 @@ class FilmSimulator:
         if profile.vignette:
             rgb = ops.vignette(rgb, profile.vignette, profile.vignette_mid)
 
-        rgb = add_grain(
-            rgb,
-            profile.grain_strength,
-            size=profile.grain_size,
-            midtone=profile.grain_midtone,
-            seed=grain_seed,
+        rgb = film_grain(
+            rgb, profile.grain_strength, size=profile.grain_size, seed=grain_seed
         )
         return ops.to_bgr_u8(rgb)

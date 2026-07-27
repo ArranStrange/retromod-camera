@@ -66,7 +66,6 @@ def profile_from_dict(key: str, data: dict) -> FilmProfile:
         grade=grade,
         grain_strength=data.get("grain_strength", 0.0),
         grain_size=data.get("grain_size", 1.0),
-        grain_midtone=data.get("grain_midtone", 0.0),
         vignette=data.get("vignette", 0.0),
         vignette_mid=data.get("vignette_mid", 0.5),
         tone_curve=curve("tone_curve"),
