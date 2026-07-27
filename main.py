@@ -8,37 +8,33 @@ import numpy as np
 import pygame
 
 import config
+from film_profiles.editor import ProfileEditor
 from film_profiles.loader import load_profiles
 from processing.pipeline import FilmSimulator
 from sources.factory import create_input
 from storage.saver import ImageSaver
 from ui.display import DISPLAY_SIZE, RearDisplayUI
+from ui.overlay import draw_editor_panel, draw_split
 
 
-def _draw_preview(
-    frame_bgr: np.ndarray,
-    ui_surface: pygame.Surface,
-    preview_w: int,
-    preview_h: int,
-) -> np.ndarray:
-    """Compose live preview with inset rear-display mock."""
-    preview = cv2.resize(frame_bgr, (preview_w, preview_h))
-
+def _inset_ui(preview: np.ndarray, ui_surface: pygame.Surface) -> np.ndarray:
+    """Blit the rear-display mock into the preview's bottom-right corner."""
     ui_rgb = pygame.surfarray.array3d(ui_surface).swapaxes(0, 1)
     ui_bgr = cv2.cvtColor(ui_rgb, cv2.COLOR_RGB2BGR)
 
-    inset_x = preview_w - DISPLAY_SIZE - 12
-    inset_y = preview_h - DISPLAY_SIZE - 12
+    h, w = preview.shape[:2]
+    inset_x = w - DISPLAY_SIZE - 12
+    inset_y = h - DISPLAY_SIZE - 12
     preview[inset_y : inset_y + DISPLAY_SIZE, inset_x : inset_x + DISPLAY_SIZE] = ui_bgr
 
-    border = cv2.rectangle(
-        preview.copy(),
+    cv2.rectangle(
+        preview,
         (inset_x - 2, inset_y - 2),
         (inset_x + DISPLAY_SIZE + 1, inset_y + DISPLAY_SIZE + 1),
         (200, 200, 200),
         1,
     )
-    return border
+    return preview
 
 
 def run() -> None:
@@ -49,6 +45,8 @@ def run() -> None:
     simulator = FilmSimulator(profile)
     saver = ImageSaver()
     ui = RearDisplayUI()
+    editor: ProfileEditor | None = None
+    split = False
 
     def switch_profile(index: int) -> None:
         nonlocal profile
@@ -69,6 +67,8 @@ def run() -> None:
     print("  SPACE     — capture (save raw + film-sim JPEG)")
     print(f"  1-{len(keys)}       — switch film profile")
     print("  , / .     — cycle profiles")
+    print("  B         — toggle original/sim split view")
+    print("  E         — edit current profile ([ ] select, - = adjust, S save)")
     print("  Q or ESC  — quit")
     print()
 
@@ -80,13 +80,13 @@ def run() -> None:
                 break
 
             processed = simulator.process(frame)
-            ui_surface = ui.render(profile, saver.shot_count)
-            preview = _draw_preview(
-                processed,
-                ui_surface,
-                config.PREVIEW_WIDTH,
-                config.PREVIEW_HEIGHT,
-            )
+            size = (config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
+            preview = cv2.resize(processed, size)
+            if split:
+                preview = draw_split(preview, cv2.resize(frame, size))
+            if editor is not None:
+                preview = draw_editor_panel(preview, editor)
+            preview = _inset_ui(preview, ui.render(profile, saver.shot_count))
             cv2.imshow(window_name, preview)
 
             key = cv2.waitKey(1) & 0xFF
@@ -102,12 +102,43 @@ def run() -> None:
                 if hasattr(camera, "advance"):
                     camera.advance()  # type: ignore[union-attr]
 
-            if ord("1") <= key < ord("1") + len(keys):
-                switch_profile(key - ord("1"))
+            if key == ord("b"):
+                split = not split
 
-            if key in (ord(","), ord(".")):
-                step = -1 if key == ord(",") else 1
-                switch_profile(keys.index(profile.key) + step)
+            if key == ord("e"):
+                if editor is None:
+                    editor = ProfileEditor(
+                        profile.key, config.PROFILES_DIR / f"{profile.key}.json"
+                    )
+                    print(f"Editing {profile.name}")
+                else:
+                    if editor.dirty:
+                        print("Exited edit mode; unsaved tweaks discarded")
+                    profile = profiles[profile.key]
+                    simulator.set_profile(profile)
+                    editor = None
+            elif editor is not None:
+                if key == ord("["):
+                    editor.select(-1)
+                if key == ord("]"):
+                    editor.select(+1)
+                if key in (ord("-"), ord("=")):
+                    editor.adjust(-1 if key == ord("-") else +1)
+                    profile = editor.build()
+                    simulator.set_profile(profile)
+                if key == ord("s"):
+                    editor.save()
+                    profile = editor.build()
+                    profiles[editor.key] = profile
+                    simulator.set_profile(profile)
+                    print(f"Saved {editor.path.name}")
+            else:
+                if ord("1") <= key < ord("1") + len(keys):
+                    switch_profile(key - ord("1"))
+
+                if key in (ord(","), ord(".")):
+                    step = -1 if key == ord(",") else 1
+                    switch_profile(keys.index(profile.key) + step)
 
     cv2.destroyAllWindows()
     ui.quit()

@@ -24,9 +24,17 @@ python3 -m venv .venv
 .venv/bin/python main.py
 ```
 
-Controls: `SPACE` capture, `1`-`6` select sim, `,` / `.` cycle sims, `Q` quit.
-Set `INPUT_SOURCE = "folder"` in `config.py` to test against images in `samples/`
-instead of the webcam.
+Controls: `SPACE` capture, `1`-`6` select sim, `,` / `.` cycle sims, `B` toggle
+an original/sim split view, `Q` quit. Set `INPUT_SOURCE = "folder"` in
+`config.py` to test against images in `samples/` instead of the webcam.
+
+### Tuning studio
+
+Press `E` to edit the current sim live: `[` / `]` select a parameter, `-` / `=`
+adjust it, `S` write it back to the profile's JSON file, `E` again to exit
+(unsaved tweaks are discarded). `warmth` (red-blue) and `tint` (green-magenta)
+are one-value colour shifts baked into the colour matrix, so most looks can be
+tuned without touching the matrix by hand.
 
 ## Film profiles
 
