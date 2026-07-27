@@ -62,7 +62,11 @@ def film_grain(
     else:
         noise = _make_field(h, w, sigma_px, seed if seed is not None else None)
 
+    # density-domain (multiplicative) grain: modulates exposure instead of
+    # sitting on top as a grey layer, so it blends with the image, preserves
+    # colour, cannot lift blacks, and rolls off in the highlights. Effective
+    # amplitude is y·(1-y)^1.2 — the Boolean-model response shape.
     y = np.clip(luma(rgb), 0.0, 1.0)
-    response = np.sqrt(y) * (1.0 - y) ** 0.8
-    grain = noise * response * (strength * 0.5)
-    return np.clip(rgb + grain[..., None], 0.0, 1.0)
+    response = (1.0 - y) ** 1.2
+    grain = noise * response * strength
+    return np.clip(rgb * (1.0 + grain[..., None]), 0.0, 1.0)

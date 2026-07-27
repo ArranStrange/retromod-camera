@@ -37,8 +37,12 @@ def test_lut_matches_precise_colour_stages(profiles, rgb, key):
 
 
 def test_fast_process_matches_precise(profiles):
+    # grain is deliberately attenuated in the fast path, so compare without it
+    import dataclasses
+
     frame = np.random.default_rng(1).integers(0, 255, (60, 80, 3), dtype=np.uint8)
-    sim = FilmSimulator(profiles["negfilm"])
+    grainless = dataclasses.replace(profiles["negfilm"], grain_strength=0.0)
+    sim = FilmSimulator(grainless)
     precise = sim.process(frame, grain_seed=2).astype(np.int16)
     fast = sim.process(frame, grain_seed=2, fast=True).astype(np.int16)
     assert np.abs(fast - precise).max() <= 8  # within ~3% of 8-bit range

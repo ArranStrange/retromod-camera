@@ -38,13 +38,12 @@ shortcut: synthesise a **correlated Gaussian field** and scale it by an
 2. Blurs it to the target correlation length and renormalises to unit
    variance — this is the grain "clump" structure (AV1 uses an
    auto-regressive filter for the same purpose).
-3. Scales it by the Boolean-style response
-   `σ(u) = strength · u^0.5 · (1 − u)^0.8` — the asymmetric exponent biases
-   grain slightly into the shadows, matching negative film density and the
-   look of Fujifilm's Grain Effect (strong mids/shadows, protected
-   highlights).
-4. Adds it to luminance only (film grain is a density effect, not chroma
-   noise) and clips.
+3. Applies it **multiplicatively** (density domain): `out = rgb · (1 + g)`
+   with `g = noise · strength · (1 − u)^1.2`. The effective amplitude is
+   therefore `u·(1 − u)^1.2` — the Boolean-model response shape, peaking
+   below middle grey with strongly protected highlights. Because grain
+   modulates exposure rather than being added as a grey layer, it blends
+   with the image, preserves colour ratios, and cannot lift pure blacks.
 
 ## Parameter mapping (Fujifilm Grain Effect equivalents)
 
