@@ -14,11 +14,25 @@ _MAX_BANK_PIXELS = 1_500_000  # bank small frames only; captures generate direct
 
 
 def _make_field(h: int, w: int, sigma_px: float, seed: int | None) -> np.ndarray:
+    """Correlated grain field with Kodak-pole character.
+
+    Real grain has a distribution of clump sizes, not one: mix a fine and a
+    coarse octave, then concentrate energy into peaks so the texture reads
+    as large, sparse clumps (Kodak-style) rather than dense uniform fuzz
+    (Fuji-style emulsions are the tiny-and-dense pole).
+    """
     rng = np.random.default_rng(seed)
-    noise = rng.standard_normal((h, w)).astype(np.float32)
-    noise = cv2.GaussianBlur(noise, (0, 0), sigmaX=sigma_px)
-    noise /= max(float(noise.std()), 1e-6)
-    return noise
+    fine = cv2.GaussianBlur(
+        rng.standard_normal((h, w)).astype(np.float32), (0, 0), sigmaX=sigma_px
+    )
+    coarse = cv2.GaussianBlur(
+        rng.standard_normal((h, w)).astype(np.float32), (0, 0), sigmaX=sigma_px * 2.5
+    )
+    field = 0.65 * fine / max(float(fine.std()), 1e-6)
+    field += 0.35 * coarse / max(float(coarse.std()), 1e-6)
+
+    field = np.sign(field) * np.abs(field) ** 1.4  # sparse clump shaping
+    return (field / max(float(field.std()), 1e-6)).astype(np.float32)
 
 
 @lru_cache(maxsize=4)

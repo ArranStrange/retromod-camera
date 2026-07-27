@@ -76,6 +76,7 @@ def run(source: str | None = None) -> None:
 
     size = (config.PREVIEW_WIDTH, config.PREVIEW_HEIGHT)
     denoise = source == "webcam" and config.DENOISE_WEBCAM
+    grain_frame = 0
     last_frame: np.ndarray | None = None
     last_profile = None
     raw_small = processed = None
@@ -93,9 +94,12 @@ def run(source: str | None = None) -> None:
                 raw_small = cv2.resize(frame, size)
                 if denoise:
                     raw_small = cv2.bilateralFilter(raw_small, 5, 40, 40)
-                # fixed grain seed: stills grain is frozen, not boiling like
-                # cine film — each capture still gets its own unique pattern
-                processed = simulator.process(raw_small, grain_seed=0, fast=True)
+                # slow grain cycle: live grain breathes gently rather than
+                # boiling per-frame; each capture gets its own unique pattern
+                grain_frame += 1
+                processed = simulator.process(
+                    raw_small, grain_seed=(grain_frame // 4) % 6, fast=True
+                )
                 last_frame, last_profile = frame, profile
 
             preview = processed.copy()
