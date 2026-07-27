@@ -56,3 +56,48 @@ def test_bad_matrix_rejected(tmp_path):
 def test_empty_directory_rejected(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_profiles(tmp_path)
+
+
+def test_warmth_and_tint_bake_into_matrix():
+    from film_profiles.loader import profile_from_dict
+
+    data = {
+        "name": "Warm",
+        "box_color": [0, 0, 0],
+        "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        "warmth": 0.1,
+        "tint": 0.05,
+    }
+    profile = profile_from_dict("warm", data)
+    assert profile.color_matrix[0, 0] == pytest.approx(1.1)
+    assert profile.color_matrix[2, 2] == pytest.approx(0.9)
+    assert profile.color_matrix[1, 1] == pytest.approx(1.05)
+
+
+def test_save_roundtrip(tmp_path):
+    from film_profiles.loader import save_profile_data
+
+    data = {
+        "name": "Round Trip",
+        "box_color": [1, 2, 3],
+        "color_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        "contrast": 1.23,
+        "tone_curve": [[0.0, 0.0], [0.5, 0.6], [1.0, 1.0]],
+    }
+    path = tmp_path / "roundtrip.json"
+    save_profile_data(data, path)
+    assert json.loads(path.read_text()) == data
+    reloaded = load_profile(path)
+    assert reloaded.contrast == pytest.approx(1.23)
+
+
+def test_save_rejects_invalid_data(tmp_path):
+    from film_profiles.loader import save_profile_data
+
+    path = tmp_path / "bad.json"
+    with pytest.raises(ValueError):
+        save_profile_data(
+            {"name": "Bad", "box_color": [0, 0, 0], "color_matrix": [[1, 0], [0, 1]]},
+            path,
+        )
+    assert not path.exists()
